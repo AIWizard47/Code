@@ -2,6 +2,7 @@ from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from problems.models import Problem
+from django.db.models import Count, Q
 from .models import Submission
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
@@ -102,3 +103,18 @@ def submit_code(request):
 def submission_history(request):
     submissions = Submission.objects.filter(user=request.user).order_by('-created_at')
     return render(request, 'submissions/history.html', {'submissions': submissions})
+
+def leaderboard(request):
+    # Aggregate unique problems solved per user
+    users = (
+        User.objects.annotate(
+            solved_count=Count(
+                'submission__problem',
+                filter=Q(submission__verdict='Accepted'),
+                distinct=True
+            )
+        )
+        .order_by('-solved_count', 'username')
+    )
+
+    return render(request, 'submissions/leaderboard.html', {'users': users})

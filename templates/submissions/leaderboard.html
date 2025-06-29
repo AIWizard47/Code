@@ -1,0 +1,16 @@
+<h2>Leaderboard</h2>
+
+<table border="1">
+  <tr>
+    <th>Rank</th>
+    <th>Username</th>
+    <th>Problems Solved</th>
+  </tr>
+  {% for user in users %}
+  <tr>
+    <td>{{ forloop.counter }}</td>
+    <td>{{ user.username }}</td>
+    <td>{{ user.solved_count }}</td>
+  </tr>
+  {% endfor %}
+</table>
