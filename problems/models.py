@@ -1,4 +1,5 @@
 from django.db import models
+from django.conf import settings
 
 
 class Tag(models.Model):
@@ -36,3 +37,26 @@ class TestCase(models.Model):
 
     def __str__(self):
         return f"TestCase for {self.problem.title}"
+
+class Contest(models.Model):
+    name = models.CharField(max_length=200)
+    start_time = models.DateTimeField()
+    end_time = models.DateTimeField()
+    problems = models.ManyToManyField('Problem', related_name='contests')
+
+    def __str__(self):
+        return self.name
+
+class ContestSubmission(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    contest = models.ForeignKey(Contest, on_delete=models.CASCADE)
+    problem = models.ForeignKey(Problem, on_delete=models.CASCADE)
+    code = models.TextField()
+    language = models.CharField(max_length=20, default="python")
+    verdict = models.CharField(max_length=20)
+    output = models.TextField(blank=True)
+    error = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'contest', 'problem')  # 1 accepted per problem per user

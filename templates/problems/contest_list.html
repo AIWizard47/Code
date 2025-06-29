@@ -1,0 +1,16 @@
+<h2>Contests</h2>
+<ul>
+  {% for contest in contests %}
+    <li>
+      <a href="{% url 'contest_detail' contest.id %}">{{ contest.name }}</a>
+      ({{ contest.start_time }} - {{ contest.end_time }})
+      {% if contest.start_time > now %}
+        <strong>Upcoming</strong>
+      {% elif contest.end_time < now %}
+        <strong>Ended</strong>
+      {% else %}
+        <strong>Running</strong>
+      {% endif %}
+    </li>
+  {% endfor %}
+</ul>
