@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Problem Solver IDE</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom scrollbar for pre elements and Monaco Editor's scroll areas */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f0f0f0;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; /* Tailwind gray-300 */
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; /* Tailwind gray-400 */
+        }
+        /* Styling for the Monaco Editor container */
+        #editor {
+            border: 1px solid rgb(209 213 219); /* Tailwind gray-300 */
+            border-radius: 0.5rem; /* Tailwind rounded-lg */
+            height: 500px; /* Specific height as requested */
+            overflow: hidden; /* Ensure Monaco doesn't overflow its container */
+            box-shadow: inset 0 1px 2px 0 rgb(0 0 0 / 0.05); /* Tailwind shadow-inner */
+        }
+        /* General pre-formatted text styling for output/error */
+        pre {
+            background: #f0f0f0;
+            padding: 10px;
+            border-radius: 8px; /* Rounded corners for pre tags */
+            font-family: monospace;
+            white-space: pre-wrap; /* Ensure text wraps */
+            word-break: break-all; /* Break long words */
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen font-sans text-gray-800 flex items-center justify-center p-4">
+
+    <!-- Top Navigation (Logout/Login) -->
+    <div class="absolute top-4 right-4 space-x-4">
+        <a href="/" class="text-indigo-600 hover:text-indigo-800 font-semibold transition duration-200">Problems</a>
+        {% if user.is_authenticated %}
+            <a href="/submissions/history/" class="text-indigo-600 hover:text-indigo-800 font-semibold transition duration-200">My Submissions</a>
+            <a href="/accounts/logout/" class="text-indigo-600 hover:text-indigo-800 font-semibold transition duration-200">Logout</a>
+        {% else %}
+            <a href="/accounts/login/" class="text-indigo-600 hover:text-indigo-800 font-semibold transition duration-200">Login</a>
+        {% endif %}
+    </div>
+
+    <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-6xl border border-gray-200 grid grid-cols-1 lg:grid-cols-2 gap-8 mt-12">
+        <!-- Problem Description Section -->
+        <div class="problem-description">
+            <h2 class="text-3xl font-extrabold text-indigo-700 mb-4">Problem Title: <span class="text-gray-900">{{ problem.title }}</span></h2>
+            <p class="text-lg text-gray-600 mb-4"><strong>Difficulty:</strong> <span class="font-semibold
+                {% if problem.difficulty == 'Easy' %}text-green-600
+                {% elif problem.difficulty == 'Medium' %}text-yellow-600
+                {% elif problem.difficulty == 'Hard' %}text-red-600
+                {% else %}text-gray-600
+                {% endif %}">
+                {{ problem.difficulty }}
+            </span></p>
+            <p class="text-gray-700 mb-4 leading-relaxed">{{ problem.description|linebreaks }}</p>
+
+            <div class="mb-4">
+                <h3 class="text-xl font-bold text-gray-700 mb-2">Input:</h3>
+                <p class="text-gray-600 leading-relaxed">{{ problem.input_description }}</p>
+            </div>
+            <div class="mb-4">
+                <h3 class="text-xl font-bold text-gray-700 mb-2">Output:</h3>
+                <p class="text-gray-600 leading-relaxed">{{ problem.output_description }}</p>
+            </div>
+            <div class="mb-6">
+                <h3 class="text-xl font-bold text-gray-700 mb-2">Constraints:</h3>
+                <p class="text-gray-600 leading-relaxed">{{ problem.constraints }}</p>
+            </div>
+
+            <div class="bg-gray-50 p-6 rounded-lg border border-gray-200 mb-4 shadow-sm">
+                <h3 class="text-xl font-bold text-gray-700 mb-3">Sample Input</h3>
+                <pre class="bg-gray-100 p-4 rounded-md border border-gray-300 text-sm font-mono text-gray-900 overflow-auto">{{ problem.sample_input }}</pre>
+            </div>
+            <div class="bg-gray-50 p-6 rounded-lg border border-gray-200 mb-4 shadow-sm">
+                <h3 class="text-xl font-bold text-gray-700 mb-3">Sample Output</h3>
+                <pre class="bg-gray-100 p-4 rounded-md border border-gray-300 text-sm font-mono text-gray-900 overflow-auto">{{ problem.sample_output }}</pre>
+            </div>
+        </div>
+
+        <!-- Code Editor and Results Section -->
+        <div>
+            <h3 class="text-2xl font-extrabold text-indigo-700 mb-4">Write Your Code</h3>
+            <div id="editor" class="mb-6">
+                <!-- Monaco Editor will be initialized here -->
+            </div>
+
+            <button id="submitButton" onclick="submitCode()" class="w-full px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all duration-200 transform hover:scale-105 active:scale-95 flex items-center justify-center space-x-2">
+                <svg id="submitIcon" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M11.354 1.146a.5.5 0 00-.708 0L8 3.793 6.354 2.146a.5.5 0 10-.708.708L7.293 4.5 5.646 6.146a.5.5 0 10.708.708L8 5.207l1.646 1.647a.5.5 0 00.708-.708L8.707 4.5l1.647-1.646a.5.5 0 000-.708z"></path><path d="M10 5a5 5 0 015 5v2.5a.5.5 0 01-1 0V10a4 4 0 10-8 0v2.5a.5.5 0 01-1 0V10a5 5 0 015-5z"></path></svg>
+                <svg id="loadingSpinner" class="hidden animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span>Submit Code</span>
+            </button>
+
+            <h3 class="text-xl font-bold text-gray-700 mt-6 mb-3">Result:</h3>
+            <pre id="result" class="bg-gray-100 p-4 rounded-lg border border-gray-200 text-sm font-mono text-gray-900 overflow-auto max-h-48 min-h-[5rem] shadow-sm"></pre>
+
+            <h3 class="text-xl font-bold text-red-600 mt-4 mb-3">Error:</h3>
+            <pre id="errorResult" class="bg-red-50 p-4 rounded-lg border border-red-200 text-sm font-mono text-red-800 overflow-auto max-h-48 min-h-[5rem] shadow-sm"></pre>
+        </div>
+    </div>
+
+    <!-- Monaco Editor Loader and Main Script -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
+    <script>
+        // Configure Monaco Editor loader
+        require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs' } });
+
+        // Initialize Monaco Editor when the window loads
+        window.onload = function() {
+            require(['vs/editor/editor.main'], function() {
+                window.editor = monaco.editor.create(document.getElementById('editor'), {
+                    value: "# Write your solution here",
+                    language: 'python', // Default language for problem solving
+                    theme: 'vs-dark', // Dark theme for a cool IDE look
+                    automaticLayout: true // Ensures editor resizes with window/container changes
+                });
+            });
+        };
+
+        /**
+         * The submitCode function sends the user's solution code to a backend server
+         * for judging and displays the verdict, output, and detailed test case results.
+         *
+         * It enhances the user experience by:
+         * 1. Clearing previous result messages.
+         * 2. Displaying a loading spinner and 'Submitting...' text.
+         * 3. Disabling the 'Submit' button during submission to prevent multiple requests.
+         * 4. Re-enabling the button and hiding the spinner once the response is received.
+         * 5. Handling potential network errors.
+         *
+         * @returns {void}
+         */
+        async function submitCode() {
+            // Get code from Monaco Editor
+            // Ensure window.editor is initialized before trying to get its value
+            const code = window.editor ? window.editor.getValue() : "# Editor not initialized or empty.";
+
+            // Assuming problem_id is passed dynamically (e.g., from Django template context)
+            const problemId = '{{ problem.id }}';
+            // The user_id is hardcoded here, but in a real application, it should be
+            // dynamically obtained from the authenticated user's session/context.
+            const userId = '1';
+
+            const resultElement = document.getElementById('result');
+            const errorResultElement = document.getElementById('errorResult');
+            const submitButton = document.getElementById('submitButton');
+            const submitIcon = document.getElementById('submitIcon');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            const submitButtonText = submitButton.querySelector('span');
+
+            // 1. Clear previous result messages and reset styling
+            resultElement.textContent = '';
+            errorResultElement.textContent = '';
+            resultElement.classList.remove('text-green-700', 'text-red-700', 'text-yellow-700', 'bg-green-50', 'bg-red-50', 'bg-yellow-50');
+            resultElement.classList.add('bg-gray-100'); // Default background
+
+            // 2. Display a loading spinner and 'Submitting...' text
+            submitButtonText.textContent = 'Submitting...';
+            submitIcon.classList.add('hidden');
+            loadingSpinner.classList.remove('hidden');
+
+            // 3. Disable the 'Submit' button
+            submitButton.disabled = true;
+            submitButton.classList.add('opacity-75', 'cursor-not-allowed');
+
+            try {
+                // Perform the fetch request to the backend
+                // Note: The X-CSRFToken is a placeholder for Django or similar frameworks.
+                // If not using such a framework, this header might need to be removed or adjusted.
+                const response = await fetch('/submissions/submit/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        // 'X-CSRFToken': '{{ csrf_token }}' // Uncomment and ensure this token is dynamically generated by your backend
+                    },
+                    body: new URLSearchParams({
+                        'problem_id': problemId,
+                        'code': code,
+                        'language': 'python', // Hardcoded as per problem context
+                        'user_id': userId // Pass user ID
+                    })
+                });
+
+                // Check if the response was successful
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                // Parse the JSON response
+                const data = await response.json();
+
+                // 4. Display the verdict, output, and detailed test case results
+                let resultOutput = `Verdict: ${data.verdict || 'Unknown'}\n\n`;
+                let verdictColorClass = '';
+
+                // Apply color and update verdict text based on the overall verdict
+                if (data.verdict === 'Accepted') {
+                    verdictColorClass = 'text-green-700';
+                    resultElement.classList.remove('bg-gray-100');
+                    resultElement.classList.add('bg-green-50');
+                } else if (data.verdict === 'Wrong Answer' || data.verdict === 'Time Limit Exceeded' || data.verdict === 'Memory Limit Exceeded' || data.verdict === 'Runtime Error') {
+                    verdictColorClass = 'text-red-700';
+                    resultElement.classList.remove('bg-gray-100');
+                    resultElement.classList.add('bg-red-50');
+                } else {
+                    verdictColorClass = 'text-yellow-700'; // E.g., for "Compiling", "Judging"
+                    resultElement.classList.remove('bg-gray-100');
+                    resultElement.classList.add('bg-yellow-50');
+                }
+                resultElement.classList.add(verdictColorClass);
+
+
+                // Display detailed test case results if available
+                if (data.test_results && Array.isArray(data.test_results)) {
+                    resultOutput += "Test Results:\n";
+                    data.test_results.forEach(tr => {
+                        resultOutput += `  Test Case ${tr.test_case}: ${tr.status}\n`;
+                        if (tr.status === "Failed") {
+                            resultOutput += `    Expected:\n${tr.expected}\n`;
+                            resultOutput += `    Actual:\n${tr.actual}\n\n`;
+                        }
+                    });
+                    resultOutput += "\n"; // Add extra newline for separation
+                } else if (data.output) {
+                    resultOutput += `Output:\n${data.output}\n`;
+                } else {
+                    resultOutput += "No standard output provided.\n";
+                }
+
+                resultElement.textContent = resultOutput;
+                errorResultElement.textContent = data.error || 'No error messages.';
+
+            } catch (error) {
+                // 5. Handle potential network errors or issues with the fetch operation
+                console.error('Error submitting code:', error);
+                errorResultElement.textContent = `Failed to connect to the server or an internal error occurred: ${error.message}. Please check your network connection or try again later.`;
+                resultElement.textContent = 'Could not submit code due to an error.';
+                resultElement.classList.remove('bg-gray-100', 'bg-green-50', 'bg-yellow-50');
+                resultElement.classList.add('text-red-700', 'bg-red-50');
+            } finally {
+                // Ensure the button is re-enabled and spinner is hidden, regardless of success or failure
+                submitButtonText.textContent = 'Submit Code';
+                loadingSpinner.classList.add('hidden');
+                submitIcon.classList.remove('hidden');
+                submitButton.disabled = false;
+                submitButton.classList.remove('opacity-75', 'cursor-not-allowed');
+            }
+        }
+    </script>
+</body>
+</html>

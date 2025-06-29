@@ -1,0 +1,12 @@
+[build]
+  base = ""
+  publish = "static"
+  command = "python manage.py runserver"
+
+[context.production.environment]
+  DJANGO_SETTINGS_MODULE = "CodePlatform.settings.production"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Problems List</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen font-sans text-gray-800 flex items-center justify-center p-4">
+
+    <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-3xl border border-gray-200">
+        <h2 class="text-4xl font-extrabold text-center text-indigo-700 mb-8">Available Problems</h2>
+
+        <div class="space-y-4">
+            {% for problem in problems %}
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-gray-50 rounded-lg shadow-sm hover:bg-gray-100 transition duration-200 ease-in-out border border-gray-200">
+                    <a href="{% url 'problem_detail' problem.slug %}" class="text-xl font-semibold text-indigo-600 hover:text-indigo-800 transition duration-200 ease-in-out mb-2 sm:mb-0">
+                        {{ problem.title }}
+                    </a>
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
+                        {% if problem.difficulty == 'Easy' %}
+                            bg-green-100 text-green-800
+                        {% elif problem.difficulty == 'Medium' %}
+                            bg-yellow-100 text-yellow-800
+                        {% elif problem.difficulty == 'Hard' %}
+                            bg-red-100 text-red-800
+                        {% else %}
+                            bg-gray-200 text-gray-800
+                        {% endif %}">
+                        {{ problem.difficulty }}
+                    </span>
+                </div>
+            {% endfor %}
+        </div>
+
+        {% comment %}
+            Example 'problems' data structure for local testing:
+            <script>
+                const problems = [
+                    { title: "Two Sum", difficulty: "Easy", slug: "two-sum" },
+                    { title: "Longest Substring Without Repeating Characters", difficulty: "Medium", slug: "longest-substring" },
+                    { title: "Median of Two Sorted Arrays", difficulty: "Hard", slug: "median-sorted-arrays" },
+                    { title: "Reverse Linked List", difficulty: "Easy", slug: "reverse-linked-list" }
+                ];
+                // You would dynamically generate the list items here if not using a backend template engine.
+                // For a live site, Django/Jinja would handle `{% for problem in problems %}`
+            </script>
+        {% endcomment %}
+
+    </div>
+
+</body>
+</html>
