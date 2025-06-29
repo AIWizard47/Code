@@ -13,29 +13,42 @@
             height: 8px;
         }
         ::-webkit-scrollbar-track {
-            background: #f0f0f0;
+            background: #2d3748; /* Darker track for consistency with body */
             border-radius: 4px;
         }
         ::-webkit-scrollbar-thumb {
-            background: #cbd5e1; /* Tailwind gray-300 */
+            background: #6b7280; /* Tailwind gray-500 */
             border-radius: 4px;
         }
         ::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8; /* Tailwind gray-400 */
+            background: #9ca3af; /* Tailwind gray-400 */
         }
     </style>
 </head>
-<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen font-sans text-gray-800 flex items-center justify-center p-4">
-    <a href="/submissions/history/">My Submissions</a>
-    <a href="/submissions/leaderboard/">Leaderboard</a>
-    <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-4xl border border-gray-200">
-        <h2 class="text-4xl font-extrabold text-center text-indigo-700 mb-8">Available Problems</h2>
+<body class="bg-gradient-to-br from-gray-900 to-gray-700 min-h-screen font-sans text-gray-100 flex flex-col items-center p-4">
+
+    <!-- Header Navigation -->
+    <header class="w-full max-w-6xl flex justify-center py-6 mb-8">
+        <nav class="space-x-8 text-lg font-medium">
+            <a href="/" class="text-gray-300 hover:text-white transition duration-200 ease-in-out px-4 py-2 rounded-lg">Problems</a>
+            <a href="/submissions/history/" class="text-gray-300 hover:text-white transition duration-200 ease-in-out px-4 py-2 rounded-lg">My Submissions</a>
+            <a href="/submissions/leaderboard/" class="text-gray-300 hover:text-white transition duration-200 ease-in-out px-4 py-2 rounded-lg">Leaderboard</a>
+            {% if user.is_authenticated %}
+                <a href="/accounts/logout/" class="text-gray-300 hover:text-white transition duration-200 ease-in-out px-4 py-2 rounded-lg">Logout</a>
+            {% else %}
+                <a href="/accounts/login/" class="text-gray-300 hover:text-white transition duration-200 ease-in-out px-4 py-2 rounded-lg">Login</a>
+            {% endif %}
+        </nav>
+    </header>
+
+    <div class="bg-white p-10 rounded-3xl shadow-2xl w-full max-w-5xl border border-gray-200">
+        <h2 class="text-5xl font-extrabold text-center text-gray-800 mb-10 drop-shadow-lg">Available Problems</h2>
 
         <!-- Filter Form -->
-        <form method="get" class="mb-8 p-6 bg-gray-50 rounded-lg shadow-inner border border-gray-100 flex flex-col md:flex-row items-center justify-center gap-4">
+        <form method="get" class="mb-10 p-8 bg-gray-100 rounded-2xl shadow-inner border border-gray-200 flex flex-col md:flex-row items-center justify-center gap-6">
             <div class="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">
-                <label for="difficulty" class="text-lg font-medium text-gray-700 whitespace-nowrap">Difficulty:</label>
-                <select name="difficulty" id="difficulty" class="flex-grow md:max-w-[120px] p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 bg-white text-gray-900 appearance-none transition-all duration-200 hover:border-indigo-400">
+                <label for="difficulty" class="text-xl font-medium text-gray-700 whitespace-nowrap">Difficulty:</label>
+                <select name="difficulty" id="difficulty" class="flex-grow md:max-w-[150px] p-4 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-600 focus:border-indigo-600 bg-white text-gray-900 appearance-none transition-all duration-200 hover:border-gray-400 cursor-pointer">
                     <option value="">All</option>
                     <option value="Easy" {% if selected_difficulty == 'Easy' %}selected{% endif %}>Easy</option>
                     <option value="Medium" {% if selected_difficulty == 'Medium' %}selected{% endif %}>Medium</option>
@@ -44,8 +57,8 @@
             </div>
 
             <div class="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">
-                <label for="tag" class="text-lg font-medium text-gray-700 whitespace-nowrap">Tag:</label>
-                <select name="tag" id="tag" class="flex-grow md:max-w-[120px] p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 bg-white text-gray-900 appearance-none transition-all duration-200 hover:border-indigo-400">
+                <label for="tag" class="text-xl font-medium text-gray-700 whitespace-nowrap">Tag:</label>
+                <select name="tag" id="tag" class="flex-grow md:max-w-[150px] p-4 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-600 focus:border-indigo-600 bg-white text-gray-900 appearance-none transition-all duration-200 hover:border-gray-400 cursor-pointer">
                     <option value="">All</option>
                     {% for tag in tags %}
                         <option value="{{ tag.name }}" {% if selected_tag == tag.name %}selected{% endif %}>{{ tag.name }}</option>
@@ -53,37 +66,37 @@
                 </select>
             </div>
 
-            <button type="submit" class="w-full md:w-auto px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all duration-200 transform hover:scale-105 active:scale-95">
-                Filter Problems
+            <button type="submit" class="w-full md:w-auto px-8 py-4 bg-indigo-700 text-white font-semibold rounded-lg shadow-lg hover:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2 transition-all duration-300 transform hover:scale-105 active:scale-95">
+                Apply Filters
             </button>
         </form>
 
         <!-- Problem List Table -->
-        <div class="overflow-x-auto shadow-md rounded-lg border border-gray-200">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
+        <div class="overflow-x-auto shadow-2xl rounded-xl border border-gray-300">
+            <table class="min-w-full divide-y divide-gray-300">
+                <thead class="bg-gray-700">
                     <tr>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th scope="col" class="px-6 py-4 text-left text-sm font-semibold text-gray-100 uppercase tracking-wider">
                             Title
                         </th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th scope="col" class="px-6 py-4 text-left text-sm font-semibold text-gray-100 uppercase tracking-wider">
                             Difficulty
                         </th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th scope="col" class="px-6 py-4 text-left text-sm font-semibold text-gray-100 uppercase tracking-wider">
                             Tags
                         </th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
                     {% for problem in problems %}
-                    <tr class="hover:bg-gray-50 transition duration-150 ease-in-out">
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-indigo-600">
+                    <tr class="{% cycle 'bg-white' 'bg-gray-50' %} hover:bg-gray-100 transition duration-150 ease-in-out">
+                        <td class="px-6 py-5 whitespace-nowrap text-lg font-medium text-indigo-700">
                             <a href="{% url 'problem_detail' problem.slug %}" class="hover:underline">
                                 {{ problem.title }}
                             </a>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium
+                        <td class="px-6 py-5 whitespace-nowrap">
+                            <span class="inline-flex items-center px-4 py-1.5 rounded-full text-sm font-semibold
                                 {% if problem.difficulty == 'Easy' %}
                                     bg-green-100 text-green-800
                                 {% elif problem.difficulty == 'Medium' %}
@@ -96,11 +109,11 @@
                                 {{ problem.difficulty }}
                             </span>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <td class="px-6 py-5 whitespace-nowrap text-base text-gray-700">
                             {% for tag in problem.tags.all %}
-                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mr-2 mb-1">
                                     {{ tag.name }}
-                                </span>{% if not forloop.last %}<span class="inline-block w-1"></span>{% endif %}
+                                </span>
                             {% endfor %}
                         </td>
                     </tr>
@@ -116,12 +129,56 @@
                     { title: "Two Sum", difficulty: "Easy", slug: "two-sum", tags: [{name: "Arrays"}, {name: "Hashing"}] },
                     { title: "Longest Substring Without Repeating Characters", difficulty: "Medium", slug: "longest-substring", tags: [{name: "Strings"}, {name: "Sliding Window"}] },
                     { title: "Median of Two Sorted Arrays", difficulty: "Hard", slug: "median-sorted-arrays", tags: [{name: "Arrays"}, {name: "Divide and Conquer"}] },
-                    { title: "Reverse Linked List", difficulty: "Easy", slug: "reverse-linked-list", tags: [{name: "Linked List"}] }
+                    { title: "Reverse Linked List", difficulty: "Easy", slug: "reverse-linked-list", tags: [{name: "Linked List"}] },
+                    { title: "Merge K Sorted Lists", difficulty: "Hard", slug: "merge-k-lists", tags: [{name: "Linked List"}, {name: "Heap"}] },
+                    { title: "Valid Parentheses", difficulty: "Easy", slug: "valid-parentheses", tags: [{name: "Strings"}, {name: "Stack"}] },
+                    { title: "Container With Most Water", difficulty: "Medium", slug: "container-water", tags: [{name: "Arrays"}, {name: "Two Pointers"}] }
                 ];
-                const tags = [{name: "Arrays"}, {name: "Hashing"}, {name: "Strings"}, {name: "Sliding Window"}, {name: "Divide and Conquer"}, {name: "Linked List"}];
+                const tags = [{name: "Arrays"}, {name: "Hashing"}, {name: "Strings"}, {name: "Sliding Window"}, {name: "Divide and Conquer"}, {name: "Linked List"}, {name: "Heap"}, {name: "Stack"}, {name: "Two Pointers"}];
                 const selected_difficulty = ""; // Example: "Easy", "Medium", "Hard", or ""
                 const selected_tag = ""; // Example: "Arrays", "Strings", or ""
-                // In a real application, these variables would be populated by your backend context.
+
+                // This script block is for demonstrating the HTML structure locally.
+                // In a real application, the `problems`, `tags`, `selected_difficulty`, and `selected_tag`
+                // variables would be populated by your backend context (e.g., Django views).
+
+                // Example of how you might use this data to render (client-side, for testing):
+                // document.addEventListener('DOMContentLoaded', () => {
+                //     const tbody = document.querySelector('.min-w-full tbody');
+                //     tbody.innerHTML = ''; // Clear existing
+                //     problems.forEach((problem, index) => {
+                //         const row = document.createElement('tr');
+                //         row.className = `group hover:bg-gray-100 transition duration-150 ease-in-out ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`;
+                //         let difficultyClass;
+                //         if (problem.difficulty === 'Easy') difficultyClass = 'bg-green-100 text-green-800';
+                //         else if (problem.difficulty === 'Medium') difficultyClass = 'bg-yellow-100 text-yellow-800';
+                //         else if (problem.difficulty === 'Hard') difficultyClass = 'bg-red-100 text-red-800';
+                //         else difficultyClass = 'bg-gray-200 text-gray-800';
+
+                //         const tagsHtml = problem.tags.map(tag =>
+                //             `<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mr-2 mb-1">
+                //                 ${tag.name}
+                //             </span>`
+                //         ).join('');
+
+                //         row.innerHTML = `
+                //             <td class="px-6 py-5 whitespace-nowrap text-lg font-medium text-indigo-700">
+                //                 <a href="/problems/${problem.slug}/" class="hover:underline">
+                //                     ${problem.title}
+                //                 </a>
+                //             </td>
+                //             <td class="px-6 py-5 whitespace-nowrap">
+                //                 <span class="inline-flex items-center px-4 py-1.5 rounded-full text-sm font-semibold ${difficultyClass}">
+                //                     ${problem.difficulty}
+                //                 </span>
+                //             </td>
+                //             <td class="px-6 py-5 whitespace-nowrap text-base text-gray-700">
+                //                 ${tagsHtml}
+                //             </td>
+                //         `;
+                //         tbody.appendChild(row);
+                //     });
+                // });
             </script>
         {% endcomment %}
     </div>

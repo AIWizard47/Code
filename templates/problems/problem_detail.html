@@ -27,7 +27,7 @@
         #editor {
             border: 1px solid rgb(209 213 219); /* Tailwind gray-300 */
             border-radius: 0.5rem; /* Tailwind rounded-lg */
-            height: 500px; /* Specific height as requested */
+            height: 500px; /* Specific height as requested, fixed for now */
             overflow: hidden; /* Ensure Monaco doesn't overflow its container */
             box-shadow: inset 0 1px 2px 0 rgb(0 0 0 / 0.05); /* Tailwind shadow-inner */
         }
@@ -40,22 +40,35 @@
             white-space: pre-wrap; /* Ensure text wraps */
             word-break: break-all; /* Break long words */
         }
+        /* Explicitly define transition for result/error visibility */
+        .results-container {
+            transition: max-height 0.5s ease-out, opacity 0.5s ease-out;
+            max-height: 0; /* Hidden state */
+            opacity: 0;
+            overflow: hidden;
+        }
+        .results-container.visible {
+            max-height: 1000px; /* Sufficient height to show content */
+            opacity: 1;
+        }
     </style>
 </head>
-<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen font-sans text-gray-800 flex items-center justify-center p-4">
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen font-sans text-gray-800 flex flex-col p-4">
 
     <!-- Top Navigation (Logout/Login) -->
-    <div class="absolute top-4 right-4 space-x-4">
-        <a href="/" class="text-indigo-600 hover:text-indigo-800 font-semibold transition duration-200">Problems</a>
-        {% if user.is_authenticated %}
-            <a href="/submissions/history/" class="text-indigo-600 hover:text-indigo-800 font-semibold transition duration-200">My Submissions</a>
-            <a href="/accounts/logout/" class="text-indigo-600 hover:text-indigo-800 font-semibold transition duration-200">Logout</a>
-        {% else %}
-            <a href="/accounts/login/" class="text-indigo-600 hover:text-indigo-800 font-semibold transition duration-200">Login</a>
-        {% endif %}
+    <div class="w-full flex justify-end p-4 z-10">
+        <div class="space-x-4">
+            <a href="/" class="text-indigo-600 hover:text-indigo-800 font-semibold transition duration-200">Problems</a>
+            {% if user.is_authenticated %}
+                <a href="/submissions/history/" class="text-indigo-600 hover:text-indigo-800 font-semibold transition duration-200">My Submissions</a>
+                <a href="/accounts/logout/" class="text-indigo-600 hover:text-indigo-800 font-semibold transition duration-200">Logout</a>
+            {% else %}
+                <a href="/accounts/login/" class="text-indigo-600 hover:text-indigo-800 font-semibold transition duration-200">Login</a>
+            {% endif %}
+        </div>
     </div>
 
-    <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-6xl border border-gray-200 grid grid-cols-1 lg:grid-cols-2 gap-8 mt-12">
+    <div class="bg-white p-8 rounded-2xl shadow-xl w-full mx-auto max-w-7xl border border-gray-200 flex-grow grid grid-cols-1 lg:grid-cols-2 gap-8 mb-4">
         <!-- Problem Description Section -->
         <div class="problem-description">
             <h2 class="text-3xl font-extrabold text-indigo-700 mb-4">Problem Title: <span class="text-gray-900">{{ problem.title }}</span></h2>
@@ -111,20 +124,28 @@
                 <!-- Monaco Editor will be initialized here -->
             </div>
 
-            <button id="submitButton" onclick="submitCode()" class="w-full px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all duration-200 transform hover:scale-105 active:scale-95 flex items-center justify-center space-x-2">
-                <svg id="submitIcon" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M11.354 1.146a.5.5 0 00-.708 0L8 3.793 6.354 2.146a.5.5 0 10-.708.708L7.293 4.5 5.646 6.146a.5.5 0 10.708.708L8 5.207l1.646 1.647a.5.5 0 00.708-.708L8.707 4.5l1.647-1.646a.5.5 0 000-.708z"></path><path d="M10 5a5 5 0 015 5v2.5a.5.5 0 01-1 0V10a4 4 0 10-8 0v2.5a.5.5 0 01-1 0V10a5 5 0 015-5z"></path></svg>
-                <svg id="loadingSpinner" class="hidden animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                <span>Submit Code</span>
-            </button>
+            <div class="flex flex-col sm:flex-row gap-4 mb-6">
+                <button id="submitButton" onclick="submitCode()" class="flex-1 px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all duration-200 transform hover:scale-105 active:scale-95 flex items-center justify-center space-x-2">
+                    <svg id="submitIcon" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M11.354 1.146a.5.5 0 00-.708 0L8 3.793 6.354 2.146a.5.5 0 10-.708.708L7.293 4.5 5.646 6.146a.5.5 0 10.708.708L8 5.207l1.646 1.647a.5.5 0 00.708-.708L8.707 4.5l1.647-1.646a.5.5 0 000-.708z"></path><path d="M10 5a5 5 0 015 5v2.5a.5.5 0 01-1 0V10a4 4 0 10-8 0v2.5a.5.5 0 01-1 0V10a5 5 0 015-5z"></path></svg>
+                    <svg id="loadingSpinner" class="hidden animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Submit Code</span>
+                </button>
+                <button id="toggleResultsButton" onclick="toggleResultsVisibility()" class="flex-1 px-6 py-3 bg-gray-200 text-gray-700 font-semibold rounded-lg shadow-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 transition-all duration-200 transform hover:scale-105 active:scale-95">
+                    Toggle Results
+                </button>
+            </div>
 
-            <h3 class="text-xl font-bold text-gray-700 mt-6 mb-3">Result:</h3>
-            <pre id="result" class="bg-gray-100 p-4 rounded-lg border border-gray-200 text-sm font-mono text-gray-900 overflow-auto max-h-48 min-h-[5rem] shadow-sm"></pre>
 
-            <h3 class="text-xl font-bold text-red-600 mt-4 mb-3">Error:</h3>
-            <pre id="errorResult" class="bg-red-50 p-4 rounded-lg border border-red-200 text-sm font-mono text-red-800 overflow-auto max-h-48 min-h-[5rem] shadow-sm"></pre>
+            <div id="resultsContainer" class="results-container">
+                <h3 class="text-xl font-bold text-gray-700 mt-6 mb-3">Result:</h3>
+                <pre id="result" class="bg-gray-100 p-4 rounded-lg border border-gray-200 text-sm font-mono text-gray-900 overflow-auto max-h-48 min-h-[5rem] shadow-sm"></pre>
+
+                <h3 class="text-xl font-bold text-red-600 mt-4 mb-3">Error:</h3>
+                <pre id="errorResult" class="bg-red-50 p-4 rounded-lg border border-red-200 text-sm font-mono text-red-800 overflow-auto max-h-48 min-h-[5rem] shadow-sm"></pre>
+            </div>
         </div>
     </div>
 
@@ -132,6 +153,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
     <script>
         let editor; // Global variable to hold the Monaco Editor instance
+        let resultsVisible = false; // Track visibility of results container
 
         // Configure Monaco Editor loader
         require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs' } });
@@ -171,9 +193,24 @@
                 const currentLanguage = editor.getModel().getLanguageId();
 
                 // Check if the current content is essentially the default for its language
-                if (currentValue === defaultCode[currentLanguage].trim() || currentValue === "# Write your solution here") {
+                // or if it's the generic placeholder.
+                if (currentValue === (defaultCode[currentLanguage] || "").trim() || currentValue === "# Write your solution here") {
                     editor.setValue(defaultCode[newLanguage]);
                 }
+            }
+        }
+
+        /**
+         * Toggles the visibility of the results and error containers.
+         */
+        function toggleResultsVisibility() {
+            const resultsContainer = document.getElementById('resultsContainer');
+            if (resultsVisible) {
+                resultsContainer.classList.remove('visible');
+                resultsVisible = false;
+            } else {
+                resultsContainer.classList.add('visible');
+                resultsVisible = true;
             }
         }
 
@@ -186,11 +223,19 @@
          * 2. Displaying a loading spinner and 'Submitting...' text.
          * 3. Disabling the 'Submit' button during submission to prevent multiple requests.
          * 4. Re-enabling the button and hiding the spinner once the response is received.
-         * 5. Handling potential network errors.
+         * 5. Ensuring the results section is visible after submission.
+         * 6. Handling potential network errors.
          *
          * @returns {void}
          */
         async function submitCode() {
+            // Ensure results section is visible upon submission
+            const resultsContainer = document.getElementById('resultsContainer');
+            if (!resultsVisible) {
+                resultsContainer.classList.add('visible');
+                resultsVisible = true;
+            }
+
             // Get code from Monaco Editor
             const code = editor ? editor.getValue() : "# Editor not initialized or empty.";
             const language = document.getElementById("language").value; // Get selected language
@@ -237,6 +282,7 @@
                         'problem_id': problemId,
                         'code': code,
                         'language': language, // Send selected language
+                        'user_id': userId
                     })
                 });
 

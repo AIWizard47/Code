@@ -107,7 +107,7 @@ def run_code(code, language, input_data):
             with open(file_path, 'w') as f:
                 f.write(code)
             result = subprocess.run(
-                ['python3', file_path],
+                ['python', file_path],
                 input=input_data.encode(),
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
