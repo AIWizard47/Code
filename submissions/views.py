@@ -45,8 +45,12 @@ def submit_code(request):
                         stderr=subprocess.PIPE,
                         timeout=5
                     )
-                    actual_output = result.stdout.decode().strip()
-                    expected_output = test_case.expected_output.strip()
+                    def normalize_output(output):
+                        lines = output.strip().replace('\r\n', '\n').split('\n')
+                        return '\n'.join(line.rstrip() for line in lines)
+
+                    actual_output = normalize_output(result.stdout.decode())
+                    expected_output = normalize_output(test_case.expected_output)
 
                     if actual_output != expected_output:
                         verdict = 'Wrong Answer'
