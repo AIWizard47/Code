@@ -34,7 +34,7 @@
             <a href="/submissions/history/" class="text-gray-300 hover:text-white transition duration-200 ease-in-out px-4 py-2 rounded-lg">My Submissions</a>
             <a href="/submissions/leaderboard/" class="text-gray-300 hover:text-white transition duration-200 ease-in-out px-4 py-2 rounded-lg">Leaderboard</a>
             {% if user.is_authenticated %}
-                <a href="/accounts/logout/" class="text-gray-300 hover:text-white transition duration-200 ease-in-out px-4 py-2 rounded-lg">Logout</a>
+                <a href="/logout/" class="text-gray-300 hover:text-white transition duration-200 ease-in-out px-4 py-2 rounded-lg">Logout</a>
             {% else %}
                 <a href="/accounts/login/" class="text-gray-300 hover:text-white transition duration-200 ease-in-out px-4 py-2 rounded-lg">Login</a>
             {% endif %}

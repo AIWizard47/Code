@@ -7,5 +7,6 @@ urlpatterns = [
     path('contests/', views.contest_list, name='contest_list'),
     path('contests/<int:pk>/', views.contest_detail, name='contest_detail'),
     path('contests/<int:pk>/leaderboard/', views.contest_leaderboard, name='contest_leaderboard'),
+    path("logout/",views.logout_view,name="logout")
 
 ]

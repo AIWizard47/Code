@@ -1,6 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Problem, Tag
 from .models import Contest
+from django.contrib.auth import logout
 from django.utils import timezone
 from django.db.models import Count, Q
 from django.contrib.auth.models import User
@@ -65,3 +66,7 @@ def contest_leaderboard(request, pk):
         'contest': contest,
         'users': users,
     })
+
+def logout_view(request):
+    logout(request)
+    return redirect("/")
