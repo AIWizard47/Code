@@ -95,6 +95,18 @@
         <!-- Code Editor and Results Section -->
         <div>
             <h3 class="text-2xl font-extrabold text-indigo-700 mb-4">Write Your Code</h3>
+            
+            <!-- Language Selection Dropdown -->
+            <div class="mb-4 flex items-center space-x-2">
+                <label for="language" class="text-lg font-medium text-gray-700">Language:</label>
+                <select id="language" onchange="changeEditorLanguage(this.value)"
+                        class="p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 bg-white text-gray-900 transition-all duration-200">
+                    <option value="python">Python</option>
+                    <option value="cpp">C++</option>
+                    <option value="java">Java</option>
+                </select>
+            </div>
+
             <div id="editor" class="mb-6">
                 <!-- Monaco Editor will be initialized here -->
             </div>
@@ -119,20 +131,51 @@
     <!-- Monaco Editor Loader and Main Script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
     <script>
+        let editor; // Global variable to hold the Monaco Editor instance
+
         // Configure Monaco Editor loader
         require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs' } });
+
+        // Default code for each language
+        const defaultCode = {
+            python: "# Write your Python solution here\n\ndef solve():\n    # Your code here\n    print('Hello from Python!')",
+            cpp: "// Write your C++ solution here\n#include <iostream>\n\nint main() {\n    std::cout << \"Hello from C++!\" << std::endl;\n    return 0;\n}",
+            java: "// Write your Java solution here\npublic class Main {\n    public static void main(String[] args) {\n        System.out.println(\"Hello from Java!\");\n    }\n}"
+        };
 
         // Initialize Monaco Editor when the window loads
         window.onload = function() {
             require(['vs/editor/editor.main'], function() {
-                window.editor = monaco.editor.create(document.getElementById('editor'), {
-                    value: "# Write your solution here",
-                    language: 'python', // Default language for problem solving
+                // Initialize editor with default Python language and value
+                editor = monaco.editor.create(document.getElementById('editor'), {
+                    value: defaultCode.python,
+                    language: 'python', // Initial language
                     theme: 'vs-dark', // Dark theme for a cool IDE look
                     automaticLayout: true // Ensures editor resizes with window/container changes
                 });
             });
         };
+
+        /**
+         * Changes the language mode of the Monaco Editor.
+         * @param {string} newLanguage The new language mode (e.g., 'python', 'cpp', 'java').
+         */
+        function changeEditorLanguage(newLanguage) {
+            if (editor) {
+                // Set the model's language
+                monaco.editor.setModelLanguage(editor.getModel(), newLanguage);
+
+                // Update the editor's value with the default code for the selected language,
+                // but only if the current content is still the default placeholder.
+                const currentValue = editor.getValue().trim();
+                const currentLanguage = editor.getModel().getLanguageId();
+
+                // Check if the current content is essentially the default for its language
+                if (currentValue === defaultCode[currentLanguage].trim() || currentValue === "# Write your solution here") {
+                    editor.setValue(defaultCode[newLanguage]);
+                }
+            }
+        }
 
         /**
          * The submitCode function sends the user's solution code to a backend server
@@ -149,14 +192,14 @@
          */
         async function submitCode() {
             // Get code from Monaco Editor
-            // Ensure window.editor is initialized before trying to get its value
-            const code = window.editor ? window.editor.getValue() : "# Editor not initialized or empty.";
+            const code = editor ? editor.getValue() : "# Editor not initialized or empty.";
+            const language = document.getElementById("language").value; // Get selected language
 
             // Assuming problem_id is passed dynamically (e.g., from Django template context)
             const problemId = '{{ problem.id }}';
             // The user_id is hardcoded here, but in a real application, it should be
             // dynamically obtained from the authenticated user's session/context.
-            const userId = '1';
+            const userId = '1'; // Placeholder for user ID
 
             const resultElement = document.getElementById('result');
             const errorResultElement = document.getElementById('errorResult');
@@ -193,8 +236,7 @@
                     body: new URLSearchParams({
                         'problem_id': problemId,
                         'code': code,
-                        'language': 'python', // Hardcoded as per problem context
-                        'user_id': userId // Pass user ID
+                        'language': language, // Send selected language
                     })
                 });
 

@@ -12,7 +12,6 @@ import os
 from problems.models import Contest, ContestSubmission
 from django.utils import timezone
 
-
 @csrf_exempt
 def submit_code(request):
     user = request.user
@@ -23,68 +22,61 @@ def submit_code(request):
         problem_id = request.POST.get('problem_id')
         code = request.POST.get('code')
         language = request.POST.get('language')
-        # user_id = request.POST.get('user_id')  # TODO: replace with request.user
 
-        # user = User.objects.get(id=user_id)
         problem = get_object_or_404(Problem, id=problem_id)
 
         verdict = 'Accepted'
-        output_summary = ''
         error = ''
         test_results = []
 
-        fd, path = tempfile.mkstemp(suffix=".py")
         try:
-            with os.fdopen(fd, 'w') as tmp:
-                tmp.write(code)
-                
             for idx, test_case in enumerate(problem.test_cases.all()):
-                try:
-                    result = subprocess.run(
-                        ['python', path],
-                        input=test_case.input_data.encode(),
-                        stdout=subprocess.PIPE,
-                        stderr=subprocess.PIPE,
-                        timeout=5
-                    )
-                    def normalize_output(output):
-                        lines = output.strip().replace('\r\n', '\n').split('\n')
-                        return '\n'.join(line.rstrip() for line in lines)
+                stdout, stderr = run_code(code, language, test_case.input_data)
 
-                    actual_output = normalize_output(result.stdout.decode())
-                    expected_output = normalize_output(test_case.expected_output)
+                def normalize_output(output):
+                    lines = output.strip().replace('\r\n', '\n').split('\n')
+                    return '\n'.join(line.rstrip() for line in lines)
 
-                    if actual_output != expected_output:
-                        verdict = 'Wrong Answer'
-                        test_results.append({
-                            'test_case': idx + 1,
-                            'status': 'Failed',
-                            'expected': expected_output,
-                            'actual': actual_output
-                        })
-                        # Stop on first fail
-                        break
-                    else:
-                        test_results.append({
-                            'test_case': idx + 1,
-                            'status': 'Passed'
-                        })
+                actual_output = normalize_output(stdout)
+                expected_output = normalize_output(test_case.expected_output)
 
-                except subprocess.TimeoutExpired:
-                    verdict = 'Time Limit Exceeded'
+                if stderr:
+                    verdict = 'Runtime Error'
+                    error = stderr
                     test_results.append({
                         'test_case': idx + 1,
-                        'status': 'Time Limit Exceeded'
+                        'status': 'Runtime Error',
+                        'error': stderr
                     })
                     break
+
+                if actual_output != expected_output:
+                    verdict = 'Wrong Answer'
+                    test_results.append({
+                        'test_case': idx + 1,
+                        'status': 'Failed',
+                        'expected': expected_output,
+                        'actual': actual_output
+                    })
+                    break
+                else:
+                    test_results.append({
+                        'test_case': idx + 1,
+                        'status': 'Passed'
+                    })
+
+        except subprocess.TimeoutExpired:
+            verdict = 'Time Limit Exceeded'
+            test_results.append({
+                'test_case': idx + 1,
+                'status': 'Time Limit Exceeded'
+            })
 
         except Exception as e:
             verdict = 'Runtime Error'
             error = str(e)
-        finally:
-            os.unlink(path)
 
-        # Save submission
+        # Save submission record
         Submission.objects.create(
             user=user,
             problem=problem,
@@ -103,6 +95,88 @@ def submit_code(request):
 
     return JsonResponse({'error': 'Invalid request'}, status=400)
 
+
+def run_code(code, language, input_data):
+    result = None
+    error = ''
+    temp_dir = tempfile.mkdtemp()
+
+    try:
+        if language == 'python':
+            file_path = os.path.join(temp_dir, 'main.py')
+            with open(file_path, 'w') as f:
+                f.write(code)
+            result = subprocess.run(
+                ['python3', file_path],
+                input=input_data.encode(),
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                timeout=5
+            )
+
+        elif language == 'cpp':
+            source_path = os.path.join(temp_dir, 'main.cpp')
+            binary_path = os.path.join(temp_dir, 'main')
+            with open(source_path, 'w') as f:
+                f.write(code)
+
+            compile = subprocess.run(
+                ['g++', source_path, '-o', binary_path],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE
+            )
+
+            if compile.returncode != 0:
+                error = compile.stderr.decode()
+                return '', error
+
+            result = subprocess.run(
+                [binary_path],
+                input=input_data.encode(),
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                timeout=5
+            )
+
+        elif language == 'java':
+            source_path = os.path.join(temp_dir, 'Main.java')
+            with open(source_path, 'w') as f:
+                f.write(code)
+
+            compile = subprocess.run(
+                ['javac', source_path],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE
+            )
+
+            if compile.returncode != 0:
+                error = compile.stderr.decode()
+                return '', error
+
+            result = subprocess.run(
+                ['java', '-cp', temp_dir, 'Main'],
+                input=input_data.encode(),
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                timeout=5
+            )
+
+        else:
+            error = 'Unsupported language.'
+            return '', error
+
+        stdout = result.stdout.decode()
+        stderr = result.stderr.decode()
+        return stdout, stderr
+
+    finally:
+        # Cleanup
+        try:
+            for file in os.listdir(temp_dir):
+                os.unlink(os.path.join(temp_dir, file))
+            os.rmdir(temp_dir)
+        except:
+            pass
 
 
 @csrf_exempt
