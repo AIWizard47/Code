@@ -13,15 +13,15 @@
             height: 8px;
         }
         ::-webkit-scrollbar-track {
-            background: #f0f0f0;
+            background: #2d3748; /* Darker track for consistency with body */
             border-radius: 4px;
         }
         ::-webkit-scrollbar-thumb {
-            background: #cbd5e1; /* Tailwind gray-300 */
+            background: #6b7280; /* Tailwind gray-500 */
             border-radius: 4px;
         }
         ::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8; /* Tailwind gray-400 */
+            background: #9ca3af; /* Tailwind gray-400 */
         }
         /* Styling for pre tags within table cells for better readability */
         td pre {
@@ -36,41 +36,105 @@
             white-space: pre-wrap; /* Wrap long lines */
             word-break: break-all; /* Break long words */
         }
+
+        /* Modal specific styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.75); /* Dark overlay */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000; /* Ensure it's on top */
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+        }
+        .modal-overlay.open {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 2.5rem; /* p-10 */
+            border-radius: 1.5rem; /* rounded-3xl */
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); /* shadow-xl */
+            width: 90%;
+            max-width: 800px; /* Max width for the modal */
+            max-height: 90vh; /* Max height to prevent overflow */
+            overflow-y: auto; /* Enable scrolling within modal */
+            transform: translateY(20px);
+            opacity: 0;
+            transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+        }
+        .modal-overlay.open .modal-content {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        .modal-pre {
+            background-color: #f8fafc; /* Tailwind gray-50 */
+            border: 1px solid #e2e8f0; /* Tailwind gray-200 */
+            padding: 1rem;
+            border-radius: 0.5rem; /* rounded-lg */
+            font-size: 0.875rem; /* text-sm */
+            line-height: 1.4;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+            max-height: 250px; /* Max height for code/output/error in modal */
+        }
     </style>
 </head>
-<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen font-sans text-gray-800 flex items-center justify-center p-4">
+<body class="bg-gradient-to-br from-gray-900 to-gray-700 min-h-screen font-sans text-gray-100 flex flex-col p-4">
 
-    <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-6xl border border-gray-200">
-        <h2 class="text-4xl font-extrabold text-center text-indigo-700 mb-8">Your Submissions</h2>
+    <!-- Header Navigation -->
+    <header class="w-full flex justify-center py-6 mb-8 px-4">
+        <nav class="space-x-8 text-lg font-medium">
+            <a href="/" class="text-gray-300 hover:text-white transition duration-200 ease-in-out px-4 py-2 rounded-lg">Problems</a>
+            <a href="/submissions/history/" class="text-gray-300 hover:text-white transition duration-200 ease-in-out px-4 py-2 rounded-lg">My Submissions</a>
+            <a href="/submissions/leaderboard/" class="text-gray-300 hover:text-white transition duration-200 ease-in-out px-4 py-2 rounded-lg">Leaderboard</a>
+            {% if user.is_authenticated %}
+                <a href="/accounts/logout/" class="text-gray-300 hover:text-white transition duration-200 ease-in-out px-4 py-2 rounded-lg">Logout</a>
+            {% else %}
+                <a href="/accounts/login/" class="text-gray-300 hover:text-white transition duration-200 ease-in-out px-4 py-2 rounded-lg">Login</a>
+            {% endif %}
+        </nav>
+    </header>
 
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200 shadow-md rounded-lg overflow-hidden">
-                <thead class="bg-gray-50">
+    <div class="bg-white p-10 rounded-3xl shadow-2xl w-full mx-auto max-w-7xl flex-grow border border-gray-200 mb-8">
+        <h2 class="text-5xl font-extrabold text-center text-gray-800 mb-10 drop-shadow-lg">Your Submissions</h2>
+
+        <div class="overflow-x-auto shadow-2xl rounded-xl border border-gray-300">
+            <table class="min-w-full divide-y divide-gray-300">
+                <thead class="bg-gray-700">
                     <tr>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th scope="col" class="px-6 py-4 text-left text-sm font-semibold text-gray-100 uppercase tracking-wider">
                             Problem
                         </th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th scope="col" class="px-6 py-4 text-left text-sm font-semibold text-gray-100 uppercase tracking-wider">
                             Verdict
                         </th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th scope="col" class="px-6 py-4 text-left text-sm font-semibold text-gray-100 uppercase tracking-wider">
                             Submitted At
                         </th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Details
+                        <th scope="col" class="px-6 py-4 text-left text-sm font-semibold text-gray-100 uppercase tracking-wider">
+                            Actions
                         </th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
                     {% for submission in submissions %}
-                    <tr class="hover:bg-gray-50 transition duration-150 ease-in-out">
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-indigo-600">
+                    <tr class="{% cycle 'bg-white' 'bg-gray-50' %} hover:bg-gray-100 transition duration-150 ease-in-out">
+                        <td class="px-6 py-5 whitespace-nowrap text-lg font-medium text-indigo-700">
                             <a href="{% url 'problem_detail' submission.problem.slug %}" class="hover:underline">
                                 {{ submission.problem.title }}
                             </a>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
+                        <td class="px-6 py-5 whitespace-nowrap">
+                            <span class="inline-flex items-center px-4 py-1.5 rounded-full text-sm font-semibold
                                 {% if submission.verdict == 'Accepted' %}
                                     bg-green-100 text-green-800
                                 {% elif submission.verdict == 'Wrong Answer' or submission.verdict == 'Runtime Error' or submission.verdict == 'Time Limit Exceeded' or submission.verdict == 'Memory Limit Exceeded' %}
@@ -81,73 +145,199 @@
                                 {{ submission.verdict }}
                             </span>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <td class="px-6 py-5 whitespace-nowrap text-base text-gray-700">
                             {{ submission.created_at }}
                         </td>
-                        <td class="px-6 py-4 text-sm text-gray-500">
-                            <div class="space-y-2">
-                                <p class="font-semibold text-gray-700 mb-1">Code:</p>
-                                <pre class="bg-gray-50 border-gray-200 text-gray-800">{{ submission.code }}</pre>
-
-                                {% if submission.output %}
-                                <p class="font-semibold text-gray-700 mt-2 mb-1">Output:</p>
-                                <pre class="bg-gray-50 border-gray-200 text-gray-800">{{ submission.output }}</pre>
-                                {% endif %}
-
-                                {% if submission.error %}
-                                <p class="font-semibold text-red-600 mt-2 mb-1">Error:</p>
-                                <pre class="bg-red-50 border-red-200 text-red-800">{{ submission.error }}</pre>
-                                {% endif %}
-                            </div>
+                        <td class="px-6 py-5 whitespace-nowrap text-sm text-gray-700">
+                            <button
+                                onclick="showSubmissionDetails(
+                                    `{{ submission.code|escapejs }}`,
+                                    `{{ submission.output|default:''|escapejs }}`,
+                                    `{{ submission.error|default:''|escapejs }}`
+                                )"
+                                class="px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all duration-200 transform hover:scale-105 active:scale-95"
+                            >
+                                View Details
+                            </button>
                         </td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
-
-        {% comment %}
-            Example 'submissions' data structure for local testing:
-            <script>
-                const submissions = [
-                    {
-                        problem: { title: "Two Sum", slug: "two-sum" },
-                        verdict: "Accepted",
-                        created_at: "2023-10-26 10:30:00",
-                        code: "def two_sum(nums, target):\n    # Solution code\n    return [0, 1]",
-                        output: "Test Case 1: Pass\nTest Case 2: Pass",
-                        error: null
-                    },
-                    {
-                        problem: { title: "Longest Substring", slug: "longest-substring" },
-                        verdict: "Wrong Answer",
-                        created_at: "2023-10-26 11:05:00",
-                        code: "def lengthOfLongestSubstring(s):\n    # Incorrect solution\n    return 0",
-                        output: "Test Case 1: Pass\nTest Case 2: Failed\nExpected:\n3\nActual:\n0",
-                        error: null
-                    },
-                    {
-                        problem: { title: "Median of Two Sorted Arrays", slug: "median-sorted-arrays" },
-                        verdict: "Runtime Error",
-                        created_at: "2023-10-26 12:00:00",
-                        code: "def findMedianSortedArrays(nums1, nums2):\n    # Code with an error\n    raise ValueError(\"Something went wrong\")",
-                        output: "",
-                        error: "Traceback (most recent call last):\n  File \"solution.py\", line 3, in findMedianSortedArrays\n    raise ValueError(\"Something went wrong\")\nValueError: Something went wrong"
-                    },
-                    {
-                        problem: { title: "Two Sum", slug: "two-sum" },
-                        verdict: "Time Limit Exceeded",
-                        created_at: "2023-10-26 13:15:00",
-                        code: "def two_sum(nums, target):\n    while True: pass # Infinite loop\n    return []",
-                        output: "",
-                        error: "Execution timed out."
-                    }
-                ];
-                // In a real application, the `submissions` variable would be populated by your backend context.
-                // This script block is merely for demonstrating the HTML structure locally.
-            </script>
-        {% endcomment %}
     </div>
 
+    <!-- Submission Details Modal -->
+    <div id="submissionModal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 class="text-2xl font-bold text-gray-800 mb-4">Submission Details</h3>
+
+            <div class="space-y-4">
+                <div>
+                    <p class="font-semibold text-gray-700 mb-1">Code:</p>
+                    <pre id="modalCode" class="modal-pre text-gray-800"></pre>
+                    <button onclick="copyCodeToClipboard('modalCode')" class="mt-2 px-4 py-2 bg-blue-500 text-white text-sm font-semibold rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 transition duration-200">
+                        Copy Code
+                    </button>
+                </div>
+
+                <div>
+                    <p class="font-semibold text-gray-700 mb-1">Output:</p>
+                    <pre id="modalOutput" class="modal-pre text-gray-800"></pre>
+                </div>
+
+                <div>
+                    <p class="font-semibold text-red-600 mb-1">Error:</p>
+                    <pre id="modalError" class="modal-pre text-red-800 bg-red-50 border-red-200"></pre>
+                </div>
+            </div>
+
+            <div class="flex justify-end mt-6">
+                <button onclick="hideSubmissionDetails()" class="px-6 py-3 bg-gray-300 text-gray-800 font-semibold rounded-lg shadow-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200 transform hover:scale-105 active:scale-95">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * Displays the submission details in a modal.
+         * @param {string} code The submission code.
+         * @param {string} output The standard output of the submission.
+         * @param {string} error The error output of the submission.
+         */
+        function showSubmissionDetails(code, output, error) {
+            document.getElementById('modalCode').textContent = code;
+            document.getElementById('modalOutput').textContent = output || 'No output.';
+            document.getElementById('modalError').textContent = error || 'No error.';
+
+            // Show the modal
+            document.getElementById('submissionModal').classList.add('open');
+        }
+
+        /**
+         * Hides the submission details modal.
+         */
+        function hideSubmissionDetails() {
+            document.getElementById('submissionModal').classList.remove('open');
+        }
+
+        /**
+         * Copies the content of a specified pre tag to the clipboard.
+         * @param {string} elementId The ID of the pre element whose content should be copied.
+         */
+        function copyCodeToClipboard(elementId) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                const textToCopy = element.textContent;
+                // Use the older document.execCommand for clipboard copy due to iframe restrictions
+                const textarea = document.createElement('textarea');
+                textarea.value = textToCopy;
+                textarea.style.position = 'fixed'; // Avoid scrolling to bottom
+                textarea.style.opacity = '0'; // Hide textarea
+                document.body.appendChild(textarea);
+                textarea.select();
+                try {
+                    document.execCommand('copy');
+                    alert('Code copied to clipboard!'); // Use a custom message box in a real app
+                } catch (err) {
+                    console.error('Failed to copy text:', err);
+                    alert('Failed to copy code. Please copy manually.'); // Use a custom message box
+                } finally {
+                    document.body.removeChild(textarea);
+                }
+            }
+        }
+
+        // Example 'submissions' data structure for local testing:
+        // In a real application, the `submissions` variable would be populated by your backend context.
+        // This script block is merely for demonstrating the HTML structure locally.
+        const submissions = [
+            {
+                problem: { title: "Two Sum", slug: "two-sum" },
+                verdict: "Accepted",
+                created_at: "2023-10-26 10:30:00",
+                code: "def two_sum(nums, target):\n    hashmap = {}\n    for i, num in enumerate(nums):\n        complement = target - num\n        if complement in hashmap:\n            return [hashmap[complement], i]\n        hashmap[num] = i\n    return []",
+                output: "Test Case 1: Pass\nTest Case 2: Pass\nTest Case 3: Pass",
+                error: ""
+            },
+            {
+                problem: { title: "Longest Substring", slug: "longest-substring" },
+                verdict: "Wrong Answer",
+                created_at: "2023-10-26 11:05:00",
+                code: "def lengthOfLongestSubstring(s):\n    # This is a sample incorrect solution\n    # It incorrectly returns a fixed value\n    return 0",
+                output: "Test Case 1: Pass\nTest Case 2: Failed\nExpected:\nabc\nActual:\n",
+                error: ""
+            },
+            {
+                problem: { title: "Median of Two Sorted Arrays", slug: "median-sorted-arrays" },
+                verdict: "Runtime Error",
+                created_at: "2023-10-26 12:00:00",
+                code: "def findMedianSortedArrays(nums1, nums2):\n    # Code with a runtime error example\n    result = 1 / 0 # Division by zero error\n    return result",
+                output: "",
+                error: "Traceback (most recent call last):\n  File \"solution.py\", line 3, in findMedianSortedArrays\n    result = 1 / 0 # Division by zero error\nZeroDivisionError: division by zero"
+            },
+            {
+                problem: { title: "Two Sum", slug: "two-sum" },
+                verdict: "Time Limit Exceeded",
+                created_at: "2023-10-26 13:15:00",
+                code: "def two_sum(nums, target):\n    # This code might cause a TLE due to nested loops on large inputs\n    n = len(nums)\n    for i in range(n):\n        for j in range(n):\n            if nums[i] + nums[j] == target and i != j:\n                return [i, j]\n    return []",
+                output: "",
+                error: "Execution timed out. Your code ran longer than the allowed time limit."
+            }
+        ];
+
+        // For local testing without a Django backend, you can uncomment this to populate the table dynamically:
+        /*
+        document.addEventListener('DOMContentLoaded', () => {
+            const tbody = document.querySelector('.min-w-full tbody');
+            tbody.innerHTML = ''; // Clear existing content if any
+
+            submissions.forEach((submission, index) => {
+                const row = document.createElement('tr');
+                row.className = `${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'} hover:bg-gray-100 transition duration-150 ease-in-out`;
+
+                let verdictClass = '';
+                if (submission.verdict === 'Accepted') {
+                    verdictClass = 'bg-green-100 text-green-800';
+                } else if (['Wrong Answer', 'Runtime Error', 'Time Limit Exceeded', 'Memory Limit Exceeded'].includes(submission.verdict)) {
+                    verdictClass = 'bg-red-100 text-red-800';
+                } else {
+                    verdictClass = 'bg-yellow-100 text-yellow-800';
+                }
+
+                row.innerHTML = `
+                    <td class="px-6 py-5 whitespace-nowrap text-lg font-medium text-indigo-700">
+                        <a href="/problems/${submission.problem.slug}/" class="hover:underline">
+                            ${submission.problem.title}
+                        </a>
+                    </td>
+                    <td class="px-6 py-5 whitespace-nowrap">
+                        <span class="inline-flex items-center px-4 py-1.5 rounded-full text-sm font-semibold ${verdictClass}">
+                            ${submission.verdict}
+                        </span>
+                    </td>
+                    <td class="px-6 py-5 whitespace-nowrap text-base text-gray-700">
+                        ${submission.created_at}
+                    </td>
+                    <td class="px-6 py-5 whitespace-nowrap text-sm text-gray-700">
+                        <button
+                            onclick="showSubmissionDetails(
+                                \`${submission.code.replace(/`/g, '\\`')}\`,
+                                \`${submission.output.replace(/`/g, '\\`')}\`,
+                                \`${submission.error.replace(/`/g, '\\`')}\`
+                            )"
+                            class="px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all duration-200 transform hover:scale-105 active:scale-95"
+                        >
+                            View Details
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        });
+        */
+    </script>
 </body>
 </html>
