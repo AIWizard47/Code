@@ -7,47 +7,78 @@
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Basic styling for form paragraph elements if form.as_p renders them */
+        /* Custom scrollbar for better aesthetics, though unlikely needed on this page */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f0f0f0;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; /* Tailwind gray-300 */
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; /* Tailwind gray-400 */
+        }
+        /* Styles for Django form fields rendered by {{ form.as_p }} */
         .form-field p {
-            margin-bottom: 1rem; /* Add some space between form fields */
+            margin-bottom: 1.25rem; /* Equivalent to space-y-5 for paragraphs */
         }
         .form-field label {
             display: block;
             margin-bottom: 0.5rem;
             font-weight: 500;
             color: #4a5568; /* Tailwind gray-700 */
+            font-size: 0.875rem; /* text-sm */
         }
         .form-field input[type="text"],
         .form-field input[type="password"] {
+            /* Apply Tailwind classes directly to inputs via CSS */
             width: 100%;
-            padding: 0.75rem 1rem;
-            border: 1px solid #e2e8f0; /* Tailwind gray-300 */
+            padding: 0.75rem 1rem; /* px-4 py-2 converted */
+            border: 1px solid #d1d5db; /* Tailwind gray-300 */
             border-radius: 0.5rem; /* Tailwind rounded-lg */
-            font-size: 1rem;
+            font-size: 0.875rem; /* sm:text-sm */
             line-height: 1.5;
-            color: #2d3748; /* Tailwind gray-800 */
+            color: #1a202c; /* Tailwind gray-900 */
             background-color: #f9fafb; /* Tailwind gray-50 */
-            box-shadow: inset 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* shadow-sm */
             transition: all 0.2s ease-in-out;
         }
         .form-field input[type="text"]:focus,
         .form-field input[type="password"]:focus {
             outline: none;
             border-color: #6366f1; /* Tailwind indigo-500 */
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2); /* Focus ring */
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2); /* focus:ring-2 focus:ring-indigo-500 */
+        }
+        .form-field .errorlist {
+            list-style: none;
+            padding: 0;
+            margin-top: 0.25rem;
+            font-size: 0.875rem; /* text-sm */
+            color: #dc2626; /* Tailwind red-600 */
         }
     </style>
 </head>
-<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen font-sans text-gray-800 flex items-center justify-center p-4">
+<body class="bg-gradient-to-br from-gray-900 to-gray-700 min-h-screen font-sans text-gray-100 flex items-center justify-center p-4">
 
-    <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-gray-200">
-        <h2 class="text-3xl font-extrabold text-center text-indigo-700 mb-6">Login to Your Account</h2>
+    <div class="bg-white p-10 rounded-3xl shadow-2xl w-full max-w-md border border-gray-200">
+        <h2 class="text-4xl font-extrabold text-center text-gray-800 mb-8 drop-shadow-lg">Login to Your Account</h2>
 
+        <!-- Django Form Errors Display (Non-field errors) -->
         {% if form.errors %}
             <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative mb-6" role="alert">
                 <strong class="font-bold">Error!</strong>
-                <span class="block sm:inline">Invalid username or password.</span>
-                <span class="absolute top-0 bottom-0 right-0 px-4 py-3">
+                {% for field, errors in form.errors.items %}
+                    {% if field == '__all__' %}
+                        <span class="block sm:inline">{{ errors | join:", " }}</span>
+                    {% endif %}
+                {% endfor %}
+                <!-- Close button for the alert -->
+                <span class="absolute top-0 bottom-0 right-0 px-4 py-3 cursor-pointer" onclick="this.parentElement.style.display='none';">
                     <svg class="fill-current h-6 w-6 text-red-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><title>Close</title><path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.196l-2.651 2.652a1.2 1.2 0 1 1-1.697-1.697L8.303 9.5l-2.651-2.651a1.2 1.2 0 0 1 1.697-1.697L10 7.803l2.651-2.651a1.2 1.2 0 0 1 1.697 1.697L11.696 9.5l2.652 2.651a1.2 1.2 0 0 1 0 1.698z"/></svg>
                 </span>
             </div>
@@ -55,7 +86,8 @@
 
         <form method="post" class="space-y-5">
             {% csrf_token %}
-            <!-- This renders Django form fields. We can target them with CSS if form.as_p creates <p> tags -->
+            <!-- Django form fields will be rendered by {{ form.as_p }} -->
+            <!-- The custom CSS above targets the elements generated by form.as_p -->
             <div class="form-field">
                 {{ form.as_p }}
             </div>
@@ -63,6 +95,11 @@
             <button type="submit" class="w-full px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all duration-200 transform hover:scale-105 active:scale-95">
                 Login
             </button>
+
+            <p class="text-center text-sm text-gray-600">
+                Don't have an account? 
+                <a href="{% url 'register' %}" class="font-medium text-indigo-600 hover:text-indigo-800 transition duration-200">Register here</a>
+            </p>
         </form>
     </div>
 

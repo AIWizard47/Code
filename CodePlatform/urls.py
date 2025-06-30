@@ -23,5 +23,5 @@ urlpatterns = [
     path("submissions/",include("submissions.urls")),
     # path("user/",include("users.urls"))
     path('accounts/', include('django.contrib.auth.urls')),
+    path('account/',include("users.urls")),
 ]
-    
