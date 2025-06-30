@@ -115,9 +115,9 @@
                 <label for="language" class="text-lg font-medium text-gray-700">Language:</label>
                 <select id="language" onchange="changeEditorLanguage(this.value)"
                         class="p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 bg-white text-gray-900 transition-all duration-200">
-                    <option value="python">Python</option>
-                    <option value="cpp">C++</option>
-                    <option value="java">Java</option>
+                    <option value="python" {% if selected_language == 'python' %}selected{% endif %}>Python</option>
+                    <option value="cpp" {% if selected_language == 'cpp' %}selected{% endif %}>C++</option>
+                    <option value="java" {% if selected_language == 'java' %}selected{% endif %}>Java</option>
                 </select>
             </div>
 
@@ -169,13 +169,21 @@
         // Initialize Monaco Editor when the window loads
         window.onload = function() {
             require(['vs/editor/editor.main'], function() {
-                // Initialize editor with default Python language and value
+                // Get the initially selected language from the dropdown
+                const initialLanguage = document.getElementById('language').value;
+
                 editor = monaco.editor.create(document.getElementById('editor'), {
-                    value: defaultCode.python,
-                    language: 'python', // Initial language
+                    value: defaultCode[initialLanguage] || "# Write your solution here", // Set initial value based on selected language
+                    language: initialLanguage, // Initial language
                     theme: 'vs-dark', // Dark theme for a cool IDE look
                     automaticLayout: true // Ensures editor resizes with window/container changes
                 });
+
+                // Load last submission code after editor is initialized
+                const lastSubmissionCode = `{% if last_submission %}{{ last_submission.code|escapejs }}{% endif %}`;
+                if (lastSubmissionCode && lastSubmissionCode.trim() !== "") {
+                    editor.setValue(lastSubmissionCode);
+                }
             });
         };
 
@@ -191,12 +199,13 @@
                 // Update the editor's value with the default code for the selected language,
                 // but only if the current content is still the default placeholder.
                 const currentValue = editor.getValue().trim();
-                const currentLanguage = editor.getModel().getLanguageId();
+                const currentLanguage = editor.getModel().getLanguageId(); // This will be the OLD language before the change
 
-                // Check if the current content is essentially the default for its language
+                // Check if the current content is essentially the default for its OLD language
                 // or if it's the generic placeholder.
+                // This prevents overwriting user's custom code when they switch languages.
                 if (currentValue === (defaultCode[currentLanguage] || "").trim() || currentValue === "# Write your solution here") {
-                    editor.setValue(defaultCode[newLanguage]);
+                    editor.setValue(defaultCode[newLanguage] || "# Write your solution here");
                 }
             }
         }

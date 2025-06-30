@@ -5,6 +5,7 @@ from django.contrib.auth import logout
 from django.utils import timezone
 from django.db.models import Count, Q
 from django.contrib.auth.models import User
+from submissions.models import Submission
 
 def problem_list(request):
     tag_name = request.GET.get('tag')
@@ -30,7 +31,30 @@ def problem_list(request):
 
 def problem_detail(request, slug):
     problem = get_object_or_404(Problem, slug=slug)
-    return render(request, 'problems/problem_detail.html', {'problem': problem})
+    default_language = 'python'
+
+    last_submission = None
+
+    if request.user.is_authenticated:
+        # Check if language is passed as query param (?language=cpp)
+        language = request.GET.get('language', default_language)
+        last_submission = (
+            Submission.objects.filter(
+                user=request.user,
+                problem=problem,
+                language=language
+            )
+            .order_by('-created_at')
+            .first()
+        )
+    else:
+        language = default_language
+
+    return render(request, 'problems/problem_detail.html', {
+        'problem': problem,
+        'last_submission': last_submission,
+        'selected_language': language
+    })
 
 
 def contest_list(request):
