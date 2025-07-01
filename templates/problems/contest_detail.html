@@ -1,46 +1,172 @@
-<h2>{{ contest.name }}</h2>
-<p>Start: {{ contest.start_time }} | End: {{ contest.end_time }}</p>
-
-{% if now < contest.start_time %}
-  <p><strong>This contest has not started yet.</strong></p>
-{% elif now > contest.end_time %}
-  <p><strong>This contest has ended.</strong></p>
-{% else %}
-  <div id="timer" style="font-weight:bold; font-size:1.2em; color:green;"></div>
-  <script>
-    const endTime = new Date("{{ contest.end_time|date:'c' }}").getTime();
-    const timerElement = document.getElementById("timer");
-
-    function updateTimer() {
-        const now = new Date().getTime();
-        const diff = endTime - now;
-
-        if (diff <= 0) {
-            timerElement.textContent = "Contest has ended.";
-            if (window.editor) {
-                window.editor.updateOptions({readOnly: true});
-            }
-            if (document.getElementById("submitButton")) {
-                document.getElementById("submitButton").disabled = true;
-            }
-            clearInterval(timerInterval);
-            return;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contest Details</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom scrollbar for better aesthetics */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
         }
+        ::-webkit-scrollbar-track {
+            background: #2d3748; /* Darker track for consistency with body */
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #6b7280; /* Tailwind gray-500 */
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #9ca3af; /* Tailwind gray-400 */
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-gray-900 to-gray-700 min-h-screen font-sans text-gray-100 flex flex-col p-4">
 
-        const hours = Math.floor(diff / (1000 * 60 * 60));
-        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-        timerElement.textContent = "Time Remaining: " + hours + "h " + minutes + "m " + seconds + "s";
-    }
+    <!-- Header Navigation -->
+    <header class="w-full flex justify-center py-6 mb-8 px-4">
+        <nav class="space-x-8 text-lg font-medium">
+            <a href="/" class="text-gray-300 hover:text-white transition duration-200 ease-in-out px-4 py-2 rounded-lg">Problems</a>
+            <a href="/submissions/history/" class="text-gray-300 hover:text-white transition duration-200 ease-in-out px-4 py-2 rounded-lg">My Submissions</a>
+            <a href="/submissions/leaderboard/" class="text-gray-300 hover:text-white transition duration-200 ease-in-out px-4 py-2 rounded-lg">Leaderboard</a>
+            {% if user.is_authenticated %}
+                <a href="/accounts/logout/" class="text-gray-300 hover:text-white transition duration-200 ease-in-out px-4 py-2 rounded-lg">Logout</a>
+            {% else %}
+                <a href="/accounts/login/" class="text-gray-300 hover:text-white transition duration-200 ease-in-out px-4 py-2 rounded-lg">Login</a>
+            {% endif %}
+        </nav>
+    </header>
 
-    const timerInterval = setInterval(updateTimer, 1000);
-    updateTimer();
-  </script>
+    <div class="bg-white p-10 rounded-3xl shadow-2xl w-full mx-auto max-w-4xl flex-grow border border-gray-200 mb-8 text-gray-800">
+        <h2 class="text-5xl font-extrabold text-center text-gray-800 mb-8 drop-shadow-lg">{{ contest.name }}</h2>
+        
+        <p class="text-lg text-center text-gray-600 mb-6">
+            <span class="font-semibold">Start:</span> {{ contest.start_time }} 
+            <span class="mx-2">|</span> 
+            <span class="font-semibold">End:</span> {{ contest.end_time }}
+        </p>
 
-  <h3>Problems</h3>
-  <ul>
-    {% for problem in problems %}
-      <li><a href="{% url 'problem_detail' problem.id %}">{{ problem.title }}</a></li>
-    {% endfor %}
-  </ul>
-{% endif %}
+        {% if now < contest.start_time %}
+            <div class="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 rounded-lg shadow-md mb-8" role="alert">
+                <p class="font-bold text-lg">This contest has not started yet.</p>
+                <p class="text-sm">Please check back at {{ contest.start_time }}.</p>
+            </div>
+        {% elif now > contest.end_time %}
+            <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg shadow-md mb-8" role="alert">
+                <p class="font-bold text-lg">This contest has ended.</p>
+                <p class="text-sm">You can view the problems and your past submissions.</p>
+            </div>
+        {% else %}
+            <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded-lg shadow-md mb-8 flex items-center justify-center space-x-3" role="alert">
+                <svg class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div id="timer" class="font-bold text-xl"></div>
+            </div>
+            <script>
+                // IMPORTANT: Ensure contest.end_time is passed as an ISO 8601 string (e.g., "YYYY-MM-DDTHH:MM:SSZ")
+                // from your Django view for accurate JavaScript Date parsing.
+                // Example: contest.end_time.isoformat() in Django view
+                const endTime = new Date("{{ contest.end_time|date:'c' }}").getTime();
+                const timerElement = document.getElementById("timer");
+
+                function updateTimer() {
+                    const now = new Date().getTime();
+                    const diff = endTime - now;
+
+                    if (diff <= 0) {
+                        timerElement.textContent = "Contest has ended.";
+                        // Disable editor and submit button if they exist on the page
+                        if (window.editor) {
+                            window.editor.updateOptions({readOnly: true});
+                        }
+                        const submitButton = document.getElementById("submitButton");
+                        if (submitButton) {
+                            submitButton.disabled = true;
+                            submitButton.classList.add('opacity-50', 'cursor-not-allowed');
+                        }
+                        clearInterval(timerInterval);
+                        return;
+                    }
+
+                    const hours = Math.floor(diff / (1000 * 60 * 60));
+                    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+                    timerElement.textContent = "Time Remaining: " + 
+                                                String(hours).padStart(2, '0') + "h " + 
+                                                String(minutes).padStart(2, '0') + "m " + 
+                                                String(seconds).padStart(2, '0') + "s";
+                }
+
+                const timerInterval = setInterval(updateTimer, 1000);
+                updateTimer(); // Initial call to display immediately
+            </script>
+
+            <h3 class="text-3xl font-bold text-gray-800 mb-6 mt-10">Problems in this Contest</h3>
+            <ul class="space-y-3">
+                {% for problem in problems %}
+                    <li class="bg-gray-50 p-4 rounded-lg shadow-sm border border-gray-200 hover:bg-gray-100 transition duration-200">
+                        <a href="{% url 'problem_detail' problem.id %}" class="text-indigo-700 hover:text-indigo-900 font-semibold text-lg block">
+                            {{ problem.title }}
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    </div>
+
+    {% comment %}
+        Example Django context variables for local testing:
+        <script>
+            const contest = {
+                name: "Weekly Coding Challenge #1",
+                start_time: "2025-07-01 10:00:00 UTC", // Example: replace with actual Django format
+                end_time: "2025-07-01T12:00:00Z", // ISO 8601 format for JS Date parsing
+            };
+            // Example 'now' variable for testing different states:
+            // const now = new Date("2025-07-01 09:00:00 UTC"); // Before start
+            // const now = new Date("2025-07-01 11:00:00 UTC"); // During contest
+            // const now = new Date("2025-07-01 13:00:00 UTC"); // After end
+            const now = new Date(); // Current time for live testing
+
+            const problems = [
+                { id: 1, title: "Problem A: Sum of Two Numbers" },
+                { id: 2, title: "Problem B: Find the Missing Element" },
+                { id: 3, title: "Problem C: Longest Common Subsequence" },
+            ];
+
+            // This script block is for demonstrating the HTML structure locally.
+            // In a real application, these variables would be populated by your backend context.
+
+            // To simulate Django context for local testing, you would manually set these:
+            // For `contest.end_time|date:'c'`, ensure your Django view passes an ISO 8601 string.
+            // For `now`, you would typically compare `datetime.now()` in your Django view.
+            // The `if/elif/else` blocks are Django template logic, so for pure HTML testing,
+            // you'd manually uncomment the relevant section.
+
+            // Example of how to simulate `contest` and `problems` for local testing
+            // (You'd need to manually uncomment the relevant {% if %} block above to test different states)
+            // document.addEventListener('DOMContentLoaded', () => {
+            //     // Manually update elements if not using Django template engine
+            //     document.querySelector('h2').textContent = contest.name;
+            //     document.querySelector('p.text-lg').innerHTML = `<span class="font-semibold">Start:</span> ${contest.start_time} <span class="mx-2">|</span> <span class="font-semibold">End:</span> ${contest.end_time}`;
+            //
+            //     const problemsList = document.querySelector('ul.space-y-3');
+            //     if (problemsList) {
+            //         problemsList.innerHTML = ''; // Clear existing
+            //         problems.forEach(problem => {
+            //             const li = document.createElement('li');
+            //             li.className = 'bg-gray-50 p-4 rounded-lg shadow-sm border border-gray-200 hover:bg-gray-100 transition duration-200';
+            //             li.innerHTML = `<a href="/problems/${problem.id}/" class="text-indigo-700 hover:text-indigo-900 font-semibold text-lg block">${problem.title}</a>`;
+            //             problemsList.appendChild(li);
+            //         });
+            //     }
+            // });
+        </script>
+    {% endcomment %}
+</body>
+</html>

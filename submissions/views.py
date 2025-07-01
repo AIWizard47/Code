@@ -200,57 +200,52 @@ def submit_contest_code(request):
         output_summary = ''
         error = ''
         test_results = []
-
-        fd, path = tempfile.mkstemp(suffix=".py")
         try:
-            with os.fdopen(fd, 'w') as tmp:
-                tmp.write(code)
-                
             for idx, test_case in enumerate(problem.test_cases.all()):
-                try:
-                    result = subprocess.run(
-                        ['python', path],
-                        input=test_case.input_data.encode(),
-                        stdout=subprocess.PIPE,
-                        stderr=subprocess.PIPE,
-                        timeout=5
-                    )
-                    def normalize_output(output):
-                        lines = output.strip().replace('\r\n', '\n').split('\n')
-                        return '\n'.join(line.rstrip() for line in lines)
+                stdout, stderr = run_code(code, language, test_case.input_data)
 
-                    actual_output = normalize_output(result.stdout.decode())
-                    expected_output = normalize_output(test_case.expected_output)
+                def normalize_output(output):
+                    lines = output.strip().replace('\r\n', '\n').split('\n')
+                    return '\n'.join(line.rstrip() for line in lines)
 
-                    if actual_output != expected_output:
-                        verdict = 'Wrong Answer'
-                        test_results.append({
-                            'test_case': idx + 1,
-                            'status': 'Failed',
-                            'expected': expected_output,
-                            'actual': actual_output
-                        })
-                        # Stop on first fail
-                        break
-                    else:
-                        test_results.append({
-                            'test_case': idx + 1,
-                            'status': 'Passed'
-                        })
+                actual_output = normalize_output(stdout)
+                expected_output = normalize_output(test_case.expected_output)
 
-                except subprocess.TimeoutExpired:
-                    verdict = 'Time Limit Exceeded'
+                if stderr:
+                    verdict = 'Runtime Error'
+                    error = stderr
                     test_results.append({
                         'test_case': idx + 1,
-                        'status': 'Time Limit Exceeded'
+                        'status': 'Runtime Error',
+                        'error': stderr
                     })
                     break
+
+                if actual_output != expected_output:
+                    verdict = 'Wrong Answer'
+                    test_results.append({
+                        'test_case': idx + 1,
+                        'status': 'Failed',
+                        'expected': expected_output,
+                        'actual': actual_output
+                    })
+                    break
+                else:
+                    test_results.append({
+                        'test_case': idx + 1,
+                        'status': 'Passed'
+                    })
+
+        except subprocess.TimeoutExpired:
+            verdict = 'Time Limit Exceeded'
+            test_results.append({
+                'test_case': idx + 1,
+                'status': 'Time Limit Exceeded'
+            })
 
         except Exception as e:
             verdict = 'Runtime Error'
             error = str(e)
-        finally:
-            os.unlink(path)
 
         # Save ContestSubmission
         ContestSubmission.objects.update_or_create(

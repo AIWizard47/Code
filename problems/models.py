@@ -52,7 +52,7 @@ class ContestSubmission(models.Model):
     contest = models.ForeignKey(Contest, on_delete=models.CASCADE)
     problem = models.ForeignKey(Problem, on_delete=models.CASCADE)
     code = models.TextField()
-    language = models.CharField(max_length=20, default="python")
+    language = models.CharField(max_length=20)
     verdict = models.CharField(max_length=20)
     output = models.TextField(blank=True)
     error = models.TextField(blank=True)
