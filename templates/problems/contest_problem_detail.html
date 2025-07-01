@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contest Problem: {{ problem.title }}</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom scrollbar for pre elements and Monaco Editor's scroll areas */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f0f0f0;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; /* Tailwind gray-300 */
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; /* Tailwind gray-400 */
+        }
+        /* Styling for the Monaco Editor container */
+        #editor-container {
+            border: 1px solid rgb(209 213 219); /* Tailwind gray-300 */
+            border-radius: 0.5rem; /* Tailwind rounded-lg */
+            height: 500px; /* Specific height for the editor */
+            overflow: hidden; /* Ensure Monaco doesn't overflow its container */
+            box-shadow: inset 0 1px 2px 0 rgb(0 0 0 / 0.05); /* Tailwind shadow-inner */
+        }
+        /* General pre-formatted text styling for output/error */
+        pre {
+            background: #f0f0f0;
+            padding: 10px;
+            border-radius: 8px; /* Rounded corners for pre tags */
+            font-family: monospace;
+            white-space: pre-wrap; /* Ensure text wraps */
+            word-break: break-all; /* Break long words */
+        }
+        /* Explicitly define transition for result/error visibility */
+        .results-container {
+            transition: max-height 0.5s ease-out, opacity 0.5s ease-out;
+            max-height: 0; /* Hidden state */
+            opacity: 0;
+            overflow: hidden;
+        }
+        .results-container.visible {
+            max-height: 1000px; /* Sufficient height to show content */
+            opacity: 1;
+        }
+
+        /* Custom Alert Modal Styles */
+        .custom-alert-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000; /* Higher than other modals */
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+        }
+        .custom-alert-overlay.open {
+            opacity: 1;
+            visibility: visible;
+        }
+        .custom-alert-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            transform: translateY(20px);
+            opacity: 0;
+            transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+        }
+        .custom-alert-overlay.open .custom-alert-content {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        .custom-alert-content h4 {
+            font-weight: bold;
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            color: #1f2937; /* gray-800 */
+        }
+        .custom-alert-content p {
+            color: #4b5563; /* gray-600 */
+            margin-bottom: 1.5rem;
+        }
+        .custom-alert-content button {
+            background-color: #4f46e5; /* indigo-600 */
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: background-color 0.2s ease-in-out;
+        }
+        .custom-alert-content button:hover {
+            background-color: #4338ca; /* indigo-700 */
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-gray-900 to-gray-700 min-h-screen font-sans text-gray-100 flex flex-col p-4" onload="enterFullscreen()">
+
+
+    <div class="bg-white p-10 rounded-3xl shadow-2xl w-full mx-auto max-w-7xl flex-grow border border-gray-200 mb-8 text-gray-800 grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Problem Description Section -->
+        <div class="problem-description">
+            <h2 class="text-3xl font-extrabold text-indigo-700 mb-4">Problem Title: <span class="text-gray-900">{{ problem.title }}</span></h2>
+            <p class="text-lg text-gray-600 mb-4 leading-relaxed">{{ problem.description|linebreaks }}</p>
+
+            <div class="mb-4">
+                <h3 class="text-xl font-bold text-gray-700 mb-2">Input:</h3>
+                <p class="text-gray-600 leading-relaxed">{{ problem.input_description }}</p>
+            </div>
+            <div class="mb-4">
+                <h3 class="text-xl font-bold text-gray-700 mb-2">Output:</h3>
+                <p class="text-gray-600 leading-relaxed">{{ problem.output_description }}</p>
+            </div>
+            <div class="mb-6">
+                <h3 class="text-xl font-bold text-gray-700 mb-2">Constraints:</h3>
+                <p class="text-gray-600 leading-relaxed">{{ problem.constraints }}</p>
+            </div>
+
+            <div class="bg-gray-50 p-6 rounded-lg border border-gray-200 mb-4 shadow-sm">
+                <h3 class="text-xl font-bold text-gray-700 mb-3">Sample Input</h3>
+                <pre class="bg-gray-100 p-4 rounded-md border border-gray-300 text-sm font-mono text-gray-900 overflow-auto">{{ problem.sample_input }}</pre>
+            </div>
+            <div class="bg-gray-50 p-6 rounded-lg border border-gray-200 mb-4 shadow-sm">
+                <h3 class="text-xl font-bold text-gray-700 mb-3">Sample Output</h3>
+                <pre class="bg-gray-100 p-4 rounded-md border border-gray-300 text-sm font-mono text-gray-900 overflow-auto">{{ problem.sample_output }}</pre>
+            </div>
+        </div>
+
+        <!-- Code Editor and Results Section -->
+        <div>
+            <h3 class="text-2xl font-extrabold text-indigo-700 mb-4">Write Your Code</h3>
+            
+            <!-- Language Selection Dropdown -->
+            <div class="mb-4 flex items-center space-x-2">
+                <label for="language" class="text-lg font-medium text-gray-700">Language:</label>
+                <select id="language" name="language" onchange="this.form.submit()"
+                        class="p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 bg-white text-gray-900 transition-all duration-200">
+                    <option value="python" {% if selected_language == "python" %}selected{% endif %}>Python</option>
+                    <option value="cpp" {% if selected_language == "cpp" %}selected{% endif %}>C++</option>
+                    <option value="java" {% if selected_language == "java" %}selected{% endif %}>Java</option>
+                </select>
+            </div>
+
+            <div id="editor-container" class="mb-6">
+                <!-- Monaco Editor will be initialized here -->
+            </div>
+
+            <form id="submission-form" class="flex flex-col sm:flex-row gap-4 mb-6">
+                {% csrf_token %}
+                <input type="hidden" name="contest_id" value="{{ contest.id }}">
+                <input type="hidden" name="problem_id" value="{{ problem.id }}">
+                <input type="hidden" name="language" id="submissionLanguage" value="{{ selected_language }}">
+                <textarea name="code" id="code" style="display:none;"></textarea>
+                <button type="submit" id="submitButton" class="flex-1 px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all duration-200 transform hover:scale-105 active:scale-95 flex items-center justify-center space-x-2">
+                    <svg id="submitIcon" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M11.354 1.146a.5.5 0 00-.708 0L8 3.793 6.354 2.146a.5.5 0 10-.708.708L7.293 4.5 5.646 6.146a.5.5 0 10.708.708L8 5.207l1.646 1.647a.5.5 0 00.708-.708L8.707 4.5l1.647-1.646a.5.5 0 000-.708z"></path><path d="M10 5a5 5 0 015 5v2.5a.5.5 0 01-1 0V10a4 4 0 10-8 0v2.5a.5.5 0 01-1 0V10a5 5 0 015-5z"></path></svg>
+                    <svg id="loadingSpinner" class="hidden animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Submit Code</span>
+                </button>
+            </form>
+
+            <div id="resultsContainer" class="results-container">
+                <h3 class="text-xl font-bold text-gray-700 mt-6 mb-3">Result:</h3>
+                <pre id="result" class="bg-gray-100 p-4 rounded-lg border border-gray-200 text-sm font-mono text-gray-900 overflow-auto max-h-48 min-h-[5rem] shadow-sm"></pre>
+
+                <h3 class="text-xl font-bold text-red-600 mt-4 mb-3">Error:</h3>
+                <pre id="errorResult" class="bg-red-50 p-4 rounded-lg border border-red-200 text-sm font-mono text-red-800 overflow-auto max-h-48 min-h-[5rem] shadow-sm"></pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Alert Modal Structure -->
+    <div id="customAlertOverlay" class="custom-alert-overlay">
+        <div class="custom-alert-content">
+            <h4 id="customAlertTitle"></h4>
+            <p id="customAlertMessage"></p>
+            <button onclick="hideCustomAlert()">OK</button>
+        </div>
+    </div>
+
+    <!-- Monaco Editor Loader and Main Script -->
+    <script src="https://unpkg.com/monaco-editor@latest/min/vs/loader.js"></script>
+    <script>
+        let editor; // Global variable to hold the Monaco Editor instance
+        let resultsVisible = false; // Track visibility of results container
+        let tabSwitchCount = 0; // Track tab switches
+
+        // Custom Alert Functions
+        function showCustomAlert(title, message) {
+            document.getElementById('customAlertTitle').textContent = title;
+            document.getElementById('customAlertMessage').textContent = message;
+            document.getElementById('customAlertOverlay').classList.add('open');
+        }
+
+        function hideCustomAlert() {
+            document.getElementById('customAlertOverlay').classList.remove('open');
+        }
+
+        // Fullscreen on load
+        function enterFullscreen() {
+            const el = document.documentElement;
+            if (el.requestFullscreen) {
+                el.requestFullscreen();
+            } else if (el.mozRequestFullScreen) { /* Firefox */
+                el.mozRequestFullScreen();
+            } else if (el.webkitRequestFullscreen) { /* Chrome, Safari and Opera */
+                el.webkitRequestFullscreen();
+            } else if (el.msRequestFullscreen) { /* IE/Edge */
+                el.msRequestFullscreen();
+            }
+        }
+
+        // Configure Monaco Editor loader
+        require.config({ paths: { vs: 'https://unpkg.com/monaco-editor@latest/min/vs' }});
+
+        // Default code for each language (can be expanded)
+        const defaultCode = {
+            python: "# Write your Python solution here\n\ndef solve():\n    # Your code here\n    print('Hello from Python!')",
+            cpp: "// Write your C++ solution here\n#include <iostream>\n\nint main() {\n    std::cout << \"Hello from C++!\" << std::endl;\n    return 0;\n}",
+            java: "// Write your Java solution here\npublic class Main {\n    public static void main(String[] args) {\n        System.out.println(\"Hello from Java!\");\n    }\n}"
+        };
+
+        // Initialize Monaco Editor when the DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            require(['vs/editor/editor.main'], function() {
+                const initialLanguage = document.getElementById('language').value;
+                const lastSubmissionCode = `{{ last_submission.code|default:""|escapejs }}`;
+
+                editor = monaco.editor.create(document.getElementById('editor-container'), {
+                    value: lastSubmissionCode || defaultCode[initialLanguage],
+                    language: initialLanguage,
+                    theme: 'vs-dark',
+                    automaticLayout: true
+                });
+
+                // Update the hidden language field in the submission form when dropdown changes
+                document.getElementById('language').addEventListener('change', function() {
+                    document.getElementById('submissionLanguage').value = this.value;
+                });
+            });
+        });
+
+        /**
+         * Toggles the visibility of the results and error containers.
+         */
+        function toggleResultsVisibility() {
+            const resultsContainer = document.getElementById('resultsContainer');
+            if (resultsVisible) {
+                resultsContainer.classList.remove('visible');
+                resultsVisible = false;
+            } else {
+                resultsContainer.classList.add('visible');
+                resultsVisible = true;
+            }
+        }
+
+        /**
+         * Handles code submission.
+         */
+        document.getElementById('submission-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            // Ensure results section is visible upon submission
+            const resultsContainer = document.getElementById('resultsContainer');
+            if (!resultsVisible) {
+                resultsContainer.classList.add('visible');
+                resultsVisible = true;
+            }
+
+            const code = editor ? editor.getValue() : "";
+            document.getElementById('code').value = code; // Populate hidden textarea
+
+            const submitButton = document.getElementById('submitButton');
+            const submitIcon = document.getElementById('submitIcon');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            const submitButtonText = submitButton.querySelector('span');
+            const resultElement = document.getElementById('result');
+            const errorResultElement = document.getElementById('errorResult');
+
+            // Clear previous results and reset styling
+            resultElement.textContent = '';
+            errorResultElement.textContent = '';
+            resultElement.classList.remove('text-green-700', 'text-red-700', 'text-yellow-700', 'bg-green-50', 'bg-red-50', 'bg-yellow-50');
+            resultElement.classList.add('bg-gray-100'); // Default background
+
+            // Show loading state
+            submitButtonText.textContent = 'Submitting...';
+            submitIcon.classList.add('hidden');
+            loadingSpinner.classList.remove('hidden');
+            submitButton.disabled = true;
+            submitButton.classList.add('opacity-75', 'cursor-not-allowed');
+
+            try {
+                const response = await fetch("{% url 'submit_contest_code' %}", {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}',
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: new URLSearchParams(new FormData(this))
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                let resultOutput = `Verdict: ${data.verdict || 'Unknown'}\n\n`;
+                let verdictColorClass = '';
+
+                if (data.verdict === 'Accepted') {
+                    verdictColorClass = 'text-green-700';
+                    resultElement.classList.remove('bg-gray-100');
+                    resultElement.classList.add('bg-green-50');
+                } else if (data.verdict === 'Wrong Answer' || data.verdict === 'Time Limit Exceeded' || data.verdict === 'Memory Limit Exceeded' || data.verdict === 'Runtime Error') {
+                    verdictColorClass = 'text-red-700';
+                    resultElement.classList.remove('bg-gray-100');
+                    resultElement.classList.add('bg-red-50');
+                } else {
+                    verdictColorClass = 'text-yellow-700'; // E.g., for "Compiling", "Judging"
+                    resultElement.classList.remove('bg-gray-100');
+                    resultElement.classList.add('bg-yellow-50');
+                }
+                resultElement.classList.add(verdictColorClass);
+
+                if (data.test_results && Array.isArray(data.test_results)) {
+                    resultOutput += "Test Results:\n";
+                    data.test_results.forEach(tr => {
+                        resultOutput += `  Test Case ${tr.test_case}: ${tr.status}\n`;
+                        if (tr.status === "Failed") {
+                            resultOutput += `    Expected:\n${tr.expected}\n`;
+                            resultOutput += `    Actual:\n${tr.actual}\n\n`;
+                        }
+                    });
+                    resultOutput += "\n";
+                } else if (data.output) {
+                    resultOutput += `Output:\n${data.output}\n`;
+                } else {
+                    resultOutput += "No standard output provided.\n";
+                }
+
+                resultElement.textContent = resultOutput;
+                errorResultElement.textContent = data.error || 'No error messages.';
+
+            } catch (error) {
+                console.error('Error submitting code:', error);
+                errorResultElement.textContent = `Failed to connect to the server or an internal error occurred: ${error.message}. Please check your network connection or try again later.`;
+                resultElement.textContent = 'Could not submit code due to an error.';
+                resultElement.classList.remove('bg-gray-100', 'bg-green-50', 'bg-yellow-50');
+                resultElement.classList.add('text-red-700', 'bg-red-50');
+            } finally {
+                // Reset button state
+                submitButtonText.textContent = 'Submit Code';
+                loadingSpinner.classList.add('hidden');
+                submitIcon.classList.remove('hidden');
+                submitButton.disabled = false;
+                submitButton.classList.remove('opacity-75', 'cursor-not-allowed');
+                // Reload the page to update last submission status if needed
+                // location.reload(); // Uncomment if you want to force a full page reload after submission
+            }
+        });
+
+        // Tab Switching Detection
+        window.onblur = function () {
+            tabSwitchCount += 1;
+
+            if (tabSwitchCount === 1) {
+                showCustomAlert("Warning!", "You switched tabs! One more time and you'll be disqualified.");
+            } else if (tabSwitchCount >= 2) {
+                showCustomAlert("Disqualified!", "You have been disqualified due to multiple tab switches.");
+                // Optionally auto-submit or redirect
+                // Disable editor and submit button
+                if (editor) {
+                    editor.updateOptions({readOnly: true});
+                }
+                const submitButton = document.getElementById("submitButton");
+                if (submitButton) {
+                    submitButton.disabled = true;
+                    submitButton.classList.add('opacity-50', 'cursor-not-allowed');
+                }
+                setTimeout(() => {
+                    window.location.href = "{% url 'contest_list' %}"; // Redirect to contest list
+                }, 3000); // Give user time to read message
+            }
+        };
+
+        // Disable Copy, Paste, and Context Menu
+        document.addEventListener('cut', function(e) {
+            e.preventDefault();
+            showCustomAlert("Action Blocked", "Copying code is disabled during the contest.");
+        });
+        document.addEventListener('copy', function(e) {
+            e.preventDefault();
+            showCustomAlert("Action Blocked", "Copying code is disabled during the contest.");
+        });
+
+        document.addEventListener('paste', function(e) {
+            e.preventDefault();
+            showCustomAlert("Action Blocked", "Pasting code is disabled during the contest.");
+        });
+
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            showCustomAlert("Action Blocked", "Right-click is disabled during the contest.");
+        });
+    </script>
+</body>
+</html>

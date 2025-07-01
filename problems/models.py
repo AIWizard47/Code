@@ -60,3 +60,11 @@ class ContestSubmission(models.Model):
 
     class Meta:
         unique_together = ('user', 'contest', 'problem')  # 1 accepted per problem per user
+
+class ContestRegistration(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    contest = models.ForeignKey(Contest, on_delete=models.CASCADE)
+    registered_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'contest')

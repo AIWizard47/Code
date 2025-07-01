@@ -1,3 +1,5 @@
+{% load contest_extras %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -109,20 +111,118 @@
             <h3 class="text-3xl font-bold text-gray-800 mb-6 mt-10">Problems in this Contest</h3>
             <ul class="space-y-3">
                 {% for problem in problems %}
-                    <li class="bg-gray-50 p-4 rounded-lg shadow-sm border border-gray-200 hover:bg-gray-100 transition duration-200">
-                        <a href="{% url 'problem_detail' problem.id %}" class="text-indigo-700 hover:text-indigo-900 font-semibold text-lg block">
+                    <li class="bg-gray-50 p-4 rounded-lg shadow-sm border border-gray-200 hover:bg-gray-100 transition duration-200 flex justify-between items-center">
+                        <a href="{% url 'contest_problem_detail' contest.id problem.id %}" class="text-indigo-700 hover:text-indigo-900 font-semibold text-lg block">
                             {{ problem.title }}
                         </a>
+                        {% comment %}
+                            IMPORTANT:
+                            The `submission_status` context variable should be a dictionary
+                            where keys are `problem.id` and values are the latest `verdict` string
+                            for the logged-in user for that problem in this contest.
+                            Example Django view snippet:
+                            from django.shortcuts import render
+                            from django.utils import timezone
+                            from submissions.models import Submission # Assuming your model path
+                            from contests.models import Contest, Problem # Assuming your model paths
+
+                            def contest_detail_view(request, contest_id):
+                                contest = get_object_or_404(Contest, id=contest_id)
+                                problems = contest.problems.all().order_by('title') # Assuming a ManyToMany or ForeignKey relationship
+
+                                submission_status = {}
+                                if request.user.is_authenticated:
+                                    for problem in problems:
+                                        latest_submission = Submission.objects.filter(
+                                            user=request.user,
+                                            problem=problem,
+                                            contest=contest # Filter by contest if your Submission model has a contest field
+                                        ).order_by('-created_at').first()
+                                        if latest_submission:
+                                            submission_status[problem.id] = latest_submission.verdict
+                                        else:
+                                            submission_status[problem.id] = "Unattempted" # Explicitly set if no submission
+
+                                context = {
+                                    'contest': contest,
+                                    'problems': problems,
+                                    'now': timezone.now(),
+                                    'submission_status': submission_status,
+                                }
+                                return render(request, 'your_app_name/contest_detail.html', context)
+
+                            # You might also need a custom template filter for dictionary lookup if not already defined:
+                            # In templatetags/your_filters.py:
+                            # from django import template
+                            # register = template.Library()
+                            # @register.filter(name='get_item')
+                            # def get_item(dictionary, key):
+                            #     return dictionary.get(key)
+                            # Then in your template: {% load your_filters %}
+                        {% endcomment %}
+                            {% if problem_status == "Accepted" %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">✅ Solved</span>
+                            {% elif problem_status == "Wrong Answer" %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">❌ Wrong Answer</span>
+                            {% elif problem_status == "Error" or problem_status == "Runtime Error" or problem_status == "Time Limit Exceeded" or problem_status == "Memory Limit Exceeded" %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">⚠️ Error</span>
+                            {% else %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">⏳ Unattempted</span>
+                            {% endif %}
                     </li>
                 {% endfor %}
             </ul>
         {% endif %}
+        
+        <!-- Contest Registration Logic -->
+        <div class="mt-10 pt-6 border-t border-gray-200">
+            {% if not user.is_authenticated %}
+                <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded-lg shadow-md" role="alert">
+                    <p class="font-bold text-lg">Please log in to register for this contest.</p>
+                    <p class="text-sm mt-1">
+                        <a href="{% url 'login' %}?next={{ request.path }}" class="font-semibold text-yellow-800 hover:underline">Login here</a>
+                    </p>
+                </div>
+            {% elif now < contest.start_time %}
+                {% comment %}
+                    IMPORTANT:
+                    The `is_registered` custom template filter is required for this part.
+                    Example templatetags/your_filters.py:
+                    from django import template
+                    register = template.Library()
+
+                    @register.filter(name='is_registered')
+                    def is_registered(contest, user):
+                        # Assuming Contest has a ManyToMany relationship to User through a 'participants' field
+                        # Or a separate Registration model
+                        return contest.participants.filter(id=user.id).exists()
+                    # Then in your template: {% load your_filters %}
+                {% endcomment %}
+                {% if not contest|is_registered:user %}
+                    <div class="bg-indigo-100 border-l-4 border-indigo-500 text-indigo-700 p-4 rounded-lg shadow-md">
+                        <p class="font-bold text-lg mb-3">Ready to join?</p>
+                        <form action="{% url 'register_for_contest' contest.id %}" method="post" class="flex items-center space-x-4">
+                            {% csrf_token %}
+                            <button type="submit" class="px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all duration-200 transform hover:scale-105 active:scale-95">
+                                Register for Contest
+                            </button>
+                        </form>
+                    </div>
+                {% else %}
+                    <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded-lg shadow-md" role="alert">
+                        <p class="font-bold text-lg">You are successfully registered for this contest!</p>
+                        <p class="text-sm mt-1">Good luck!</p>
+                    </div>
+                {% endif %}
+            {% endif %}
+        </div>
     </div>
 
     {% comment %}
         Example Django context variables for local testing:
         <script>
             const contest = {
+                id: 1, // Needed for registration URL
                 name: "Weekly Coding Challenge #1",
                 start_time: "2025-07-01 10:00:00 UTC", // Example: replace with actual Django format
                 end_time: "2025-07-01T12:00:00Z", // ISO 8601 format for JS Date parsing
@@ -138,6 +238,31 @@
                 { id: 2, title: "Problem B: Find the Missing Element" },
                 { id: 3, title: "Problem C: Longest Common Subsequence" },
             ];
+
+            // Example `submission_status` for local testing.
+            // In a real Django app, this would be passed from your view.
+            const submission_status = {
+                1: "Accepted",
+                2: "Wrong Answer",
+                // 3: "Unattempted" (or not present in the dict)
+            };
+
+            // Example `user` object and `is_registered` function for local testing.
+            // In a real Django app, `user.is_authenticated` and `contest|is_registered:user`
+            // would be handled by Django's template engine.
+            const user = {
+                is_authenticated: true, // Set to true/false to test login state
+                id: 123 // Example user ID
+            };
+
+            // This is a dummy function for local testing only.
+            // In Django, you would have a real template filter.
+            function is_registered(contest, user) {
+                // Simulate registration status for local testing
+                // For example, assume user 123 is registered for contest 1
+                return user.is_authenticated && contest.id === 1 && user.id === 123;
+            }
+
 
             // This script block is for demonstrating the HTML structure locally.
             // In a real application, these variables would be populated by your backend context.
@@ -160,8 +285,26 @@
             //         problemsList.innerHTML = ''; // Clear existing
             //         problems.forEach(problem => {
             //             const li = document.createElement('li');
-            //             li.className = 'bg-gray-50 p-4 rounded-lg shadow-sm border border-gray-200 hover:bg-gray-100 transition duration-200';
-            //             li.innerHTML = `<a href="/problems/${problem.id}/" class="text-indigo-700 hover:text-indigo-900 font-semibold text-lg block">${problem.title}</a>`;
+            //             li.className = 'bg-gray-50 p-4 rounded-lg shadow-sm border border-gray-200 hover:bg-gray-100 transition duration-200 flex justify-between items-center';
+            //
+            //             let statusHtml = '';
+            //             const currentProblemStatus = submission_status[problem.id]; // Access status from the JS object
+            //             if (currentProblemStatus === "Accepted") {
+            //                 statusHtml = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">✅ Solved</span>';
+            //             } else if (currentProblemStatus === "Wrong Answer") {
+            //                 statusHtml = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">❌ Wrong Answer</span>';
+            //             } else if (currentProblemStatus === "Error" || currentProblemStatus === "Runtime Error" || currentProblemStatus === "Time Limit Exceeded" || currentProblemStatus === "Memory Limit Exceeded") {
+            //                 statusHtml = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">⚠️ Error</span>';
+            //             } else {
+            //                 statusHtml = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">⏳ Unattempted</span>';
+            //             }
+            //
+            //             li.innerHTML = `
+            //                 <a href="/problems/${problem.id}/" class="text-indigo-700 hover:text-indigo-900 font-semibold text-lg block">
+            //                     ${problem.title}
+            //                 </a>
+            //                 ${statusHtml}
+            //             `;
             //             problemsList.appendChild(li);
             //         });
             //     }

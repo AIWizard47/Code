@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from problems.models import Problem
+from problems.models import ContestRegistration, Problem
 from django.db.models import Count, Q
 from .models import Submission
 from django.contrib.auth.models import User
@@ -194,6 +194,10 @@ def submit_contest_code(request):
         now = timezone.now()
         if not (contest.start_time <= now <= contest.end_time):
             return JsonResponse({'error': 'Contest is not active.'}, status=400)
+
+        # Before running code
+        if not ContestRegistration.objects.filter(user=request.user, contest=contest).exists():
+            return JsonResponse({'error': 'You must register for the contest first.'}, status=403)
 
         # (Run code here exactly like before, returning verdict/output...)
         verdict = 'Accepted'
