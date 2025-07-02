@@ -162,5 +162,6 @@ def contest_problem_detail(request, contest_id, problem_id):
         'contest': contest,
         'problem': problem,
         'last_submission': last_submission,
-        'selected_language': language
+        'selected_language': language,
+        'end_time': contest.end_time.isoformat(),
     })
