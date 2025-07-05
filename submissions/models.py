@@ -18,3 +18,7 @@ class Submission(models.Model):
     verdict = models.CharField(max_length=20, choices=STATUS_CHOICES)
     output = models.TextField()
     error = models.TextField()
+    
+    def __str__(self):
+        return f"TestCase for {self.problem.title} And User is {self.user.username} And {self.verdict}"
+    
