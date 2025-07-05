@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Problem Solver IDE</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* Ensure body and html take full height and width */
@@ -285,6 +286,34 @@
         .resize-handle-y:hover {
             background-color: #667eea; /* indigo-500 */
         }
+
+        /* Submission card styling */
+        .submission-card {
+            background-color: #2d3748; /* Darker background */
+            border: 1px solid #4a5568; /* Darker border */
+            border-radius: 0.75rem; /* rounded-xl */
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .submission-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
+            background-color: #3a475a; /* Slightly lighter on hover */
+        }
+        .submission-card strong {
+            color: #667eea; /* Indigo-500 for labels */
+        }
+        .submission-card .verdict-accepted {
+            color: #68d391; /* Green-300 */
+        }
+        .submission-card .verdict-wrong {
+            color: #fc8181; /* Red-300 */
+        }
+        .submission-card .verdict-other {
+            color: #f6e05e; /* Yellow-300 */
+        }
     </style>
 </head>
 <body class="bg-gradient-to-br from-gray-900 to-gray-700 text-gray-100 flex flex-col">
@@ -359,8 +388,28 @@
                 <p class="text-lg text-gray-300">Community solutions will appear here.</p>
             </div>
             <div id="submissions-content" class="tab-content hidden problem-content">
-                <h2 class="text-3xl font-extrabold text-indigo-400 mb-4">My Submissions</h2>
-                <p class="text-lg text-gray-300">Your past submissions for this problem will appear here.</p>
+                <h2 class="text-3xl font-extrabold text-indigo-400 mb-4">Your Submission History</h2>
+                <div class="grid grid-cols-1 gap-3">
+                    {% for sub in submission_history %}
+                    <div class="submission-card">
+                        <p class="text-sm text-gray-400 mb-1"><strong>Submission #{{ forloop.counter }}</strong></p>
+                        <p class="text-base text-gray-200"><strong>Time:</strong> {{ sub.created_at|date:"Y-m-d H:i" }}</p>
+                        <p class="text-base text-gray-200"><strong>Language:</strong> {{ sub.language|title }}</p>
+                        <p class="text-base">
+                            <strong>Verdict:</strong> 
+                            <span class="
+                                {% if sub.verdict == 'Accepted' %}verdict-accepted
+                                {% elif sub.verdict == 'Wrong Answer' or sub.verdict == 'Time Limit Exceeded' or sub.verdict == 'Memory Limit Exceeded' or sub.verdict == 'Runtime Error' %}verdict-wrong
+                                {% else %}verdict-other
+                                {% endif %}
+                            ">{{ sub.verdict }}</span>
+                        </p>
+                        <p class="text-base text-gray-200"><strong>Runtime:</strong> {{ sub.runtime|default:"-" }} ms</p>
+                    </div>
+                    {% empty %}
+                    <p class="text-lg text-gray-300">No submissions yet.</p>
+                    {% endfor %}
+                </div>
             </div>
 
             <div class="mt-auto pt-4 border-t border-gray-600 flex justify-around items-center flex-shrink-0">
@@ -423,26 +472,18 @@
                     </svg>
                     <span>Submit Code</span>
                 </button>
-                <button id="toggleResultsButton" onclick="toggleResultsVisibility()" class="flex-1 px-6 py-3 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200 transform hover:scale-105 active:scale-95">
-                    Toggle Results
-                </button>
             </div>
 
             <div id="verticalResizer" class="resize-handle-y"></div>
 
             <div id="consoleArea" class="console-area">
                 <div class="flex space-x-2 border-b border-gray-600 pb-2 mb-4">
-                    <button class="tab-button active" data-tab="testcase-input">Testcase</button>
-                    <button class="tab-button" data-tab="test-result">Test Result</button>
+                    <!-- Only Test Result tab remains -->
+                    <button class="tab-button active" data-tab="test-result">Test Result</button>
                 </div>
 
-                <div id="testcase-input-content" class="tab-content">
-                    <h3 class="text-xl font-bold text-gray-400 mb-2">Custom Input:</h3>
-                    <textarea id="customInput" class="w-full p-3 rounded-md bg-gray-800 border border-gray-600 text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-indigo-500" rows="4" placeholder="Enter custom test input here..."></textarea>
-                    <button class="mt-3 px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 transition-all duration-200">Run Code</button>
-                </div>
-
-                <div id="test-result-content" class="tab-content hidden">
+                <!-- Test Result content is always visible as it's the only tab -->
+                <div id="test-result-content" class="tab-content">
                     <h3 class="text-xl font-bold text-gray-400 mb-2">Execution Results:</h3>
                     <div id="resultsContainer" class="results-container">
                         <h3 class="text-xl font-bold text-gray-400 mt-6 mb-3">Verdict:</h3>
@@ -467,7 +508,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
     <script>
         let editor; // Global variable to hold the Monaco Editor instance
-        let resultsVisible = false; // Track visibility of results container
+        let resultsVisible = true; // Track visibility of results container, now always true as it's the only section
+
+        // Simulate user authentication status (replace with actual backend check)
+        const isUserAuthenticated = {% if user.is_authenticated %}true{% else %}false{% endif %};
 
         // Custom Alert Functions (retained for general alerts, not contest security)
         function showCustomAlert(title, message) {
@@ -520,10 +564,10 @@
                 window.editor = editor;
 
                 // Load last submission code if exists (from backend, if any)
-                //const lastSubmissionCode = `{% if last_submission %}{{ last_submission.code|escapejs }}{% endif %}`;
-                //if (lastSubmissionCode && lastSubmissionCode.trim() !== "") {
-                //    editor.setValue(lastSubmissionCode);
-                //}
+                const lastSubmissionCode = `{% if last_submission %}{{ last_submission.code|escapejs }}{% endif %}`;
+                if (lastSubmissionCode && lastSubmissionCode.trim() !== "") {
+                    editor.setValue(lastSubmissionCode);
+                }
 
                 // Auto-save functionality
                 // Construct storageKey dynamically. Replace `contest.id` and `problem.id` with actual values from your backend context.
@@ -561,14 +605,10 @@
                 });
             });
 
-            document.querySelectorAll('.console-area .tab-button').forEach(button => {
-                button.addEventListener('click', () => {
-                    document.querySelectorAll('.console-area .tab-button').forEach(btn => btn.classList.remove('active'));
-                    button.classList.add('active');
-                    document.querySelectorAll('.console-area .tab-content').forEach(content => content.classList.add('hidden'));
-                    document.getElementById(button.dataset.tab + '-content').classList.remove('hidden');
-                });
-            });
+            // The console area now only has one tab, so no tab switching logic needed for it.
+            // Ensure the test-result-content is visible by default.
+            document.getElementById('test-result-content').classList.remove('hidden');
+
 
             // Resizing Logic
             const leftPanel = document.getElementById('leftPanel');
@@ -715,20 +755,6 @@
         }
 
         /**
-         * Toggles the visibility of the results and error containers.
-         */
-        function toggleResultsVisibility() {
-            const resultsContainer = document.getElementById('resultsContainer');
-            if (resultsVisible) {
-                resultsContainer.classList.remove('visible');
-                resultsVisible = false;
-            } else {
-                resultsContainer.classList.add('visible');
-                resultsVisible = true;
-            }
-        }
-
-        /**
          * The submitCode function sends the user's solution code to a backend server
          * for judging and displays the verdict, output, and detailed test case results.
          *
@@ -743,12 +769,16 @@
          * @returns {void}
          */
         async function submitCode() {
+            // Check if user is authenticated
+            if (!isUserAuthenticated) {
+                showCustomAlert("Login Required", "Please log in first to submit your code.");
+                return; // Stop the submission process
+            }
+
             // Ensure results section is visible upon submission
             const resultsContainer = document.getElementById('resultsContainer');
-            // Switch to Test Result tab automatically
-            document.querySelectorAll('.console-area .tab-button').forEach(btn => btn.classList.remove('active'));
-            document.querySelector('.console-area button[data-tab="test-result"]').classList.add('active');
-            document.querySelectorAll('.console-area .tab-content').forEach(content => content.classList.add('hidden'));
+            // The console area now only has one tab, so no tab switching logic needed for it.
+            // Ensure the test-result-content is visible.
             document.getElementById('test-result-content').classList.remove('hidden');
 
 
@@ -871,7 +901,7 @@
             } catch (error) {
                 // 5. Handle potential network errors or issues with the fetch operation
                 console.error('Error submitting code:', error);
-                errorResultElement.textContent = `Failed to connect to the server or an internal error occurred: ${error.message}. Please check your network connection or try again later.`;
+                showCustomAlert("Site Issue", `Failed to connect to the server or an internal error occurred: ${error.message}. Please check your network connection or try again later.`);
                 resultElement.textContent = 'Could not submit code due to an error.';
                 resultElement.classList.remove('bg-gray-100', 'bg-green-50', 'bg-yellow-50');
                 resultElement.classList.add('text-red-700', 'bg-red-50');

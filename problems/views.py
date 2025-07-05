@@ -30,32 +30,44 @@ def problem_list(request):
     })
 
 
+# @login_required
 def problem_detail(request, slug):
     problem = get_object_or_404(Problem, slug=slug)
     default_language = 'python'
 
-    # last_submission = None
+    last_submission = None
 
     if request.user.is_authenticated:
-        # Check if language is passed as query param (?language=cpp)
         language = request.GET.get('language', default_language)
-        # last_submission = (
-        #     Submission.objects.filter(
-        #         user=request.user,
-        #         problem=problem,
-        #         language=language
-        #     )
-        #     .order_by('-created_at')
-        #     .first()
-        # )
+
+        last_submission = (
+            Submission.objects.filter(
+                user=request.user,
+                problem=problem,
+                language=language
+            )
+            .order_by('-created_at')
+            .first()
+        )
+
+        # Fetch all submissions for this problem
+        submission_history = (
+            Submission.objects.filter(
+                user=request.user,
+                problem=problem
+            ).order_by('-created_at')
+        )
     else:
         language = default_language
+        submission_history = Submission.objects.none()
 
     return render(request, 'problems/problem_detail.html', {
         'problem': problem,
-        # 'last_submission': last_submission,
-        'selected_language': language
+        'last_submission': last_submission,
+        'selected_language': language,
+        'submission_history': submission_history,
     })
+
 
 
 def contest_list(request):
