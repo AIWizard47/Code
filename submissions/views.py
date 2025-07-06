@@ -289,7 +289,6 @@ def leaderboard(request):
                 distinct=True
             )
         )
-        .order_by('-solved_count', 'username')
+        .order_by('-solved_count','date_joined')
     )
-
     return render(request, 'submissions/leaderboard.html', {'users': users})
