@@ -8,11 +8,13 @@ from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 import tempfile
 import subprocess
+from django_ratelimit.decorators import ratelimit
 import os
 from problems.models import Contest, ContestSubmission
 from django.utils import timezone
 
 @csrf_exempt
+@ratelimit(key='ip', rate='1/s', block=True)
 def submit_code(request):
     user = request.user
     if not user.is_authenticated:
