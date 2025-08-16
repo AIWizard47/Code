@@ -281,6 +281,9 @@ def submission_history(request):
     submissions = Submission.objects.filter(user=request.user).order_by('-created_at')
     return render(request, 'submissions/history.html', {'submissions': submissions})
 
+#for problem detail view
+from django.core.paginator import Paginator
+
 def leaderboard(request):
     # Aggregate unique problems solved per user
     users = (
@@ -293,4 +296,9 @@ def leaderboard(request):
         )
         .order_by('-solved_count','date_joined')
     )
-    return render(request, 'submissions/leaderboard.html', {'users': users})
+    paginator = Paginator(users, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    if request.htmx:  # If request comes from HTMX, return only the table
+        return render(request, "submissions/partials/leaderboard_table.html", {"users": page_obj})
+    return render(request, 'submissions/leaderboard.html', {'users': page_obj})

@@ -7,26 +7,43 @@ from django.contrib.auth.models import User
 from submissions.models import Submission
 from django.db.models import Subquery
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
 
 def problem_list(request):
     tag_name = request.GET.get('tag')
     difficulty = request.GET.get('difficulty')
 
-    problems = Problem.objects.all()
+    problems = Problem.objects.all().order_by('id')
 
+    # filter by tag
     if tag_name:
         problems = problems.filter(tags__name=tag_name)
 
+    # filter by difficulty
     if difficulty:
         problems = problems.filter(difficulty=difficulty)
 
     tags = Tag.objects.all()
 
+    # Pagination (3 problems per page for testing; you can change it to 10/20 later)
+    paginator = Paginator(problems, 5)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    problem_total_count = problems.count()
+    if request.user.is_authenticated:
+        # Count the number of problems solved by the user
+        solved_count = Submission.objects.filter(user=request.user, verdict='Accepted').values('problem_id').distinct().count()
+    else:
+        solved_count = 0
+    progress = int((solved_count / problem_total_count) * 100) if problem_total_count > 0 else 0
     return render(request, 'problems/problem_list.html', {
-        'problems': problems,
+        'problems': page_obj,   # renamed to page_obj (Django convention)
         'tags': tags,
         'selected_tag': tag_name,
         'selected_difficulty': difficulty,
+        'solved_count' :solved_count,
+        'problem_total_count': problem_total_count,
+        'progress': progress,
     })
 
 
