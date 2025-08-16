@@ -4,21 +4,34 @@ from django.contrib.auth.models import User
 from django.contrib.auth import login, authenticate
 from django_ratelimit.decorators import ratelimit
 from django.conf import settings
+import os
 # from captcha.fields import ReCaptchaField
 
 
 # Create your views here.
-wrong_content = set("")
+BADWORDS_FILE_PATH = os.path.join(os.path.dirname(__file__), "badwords.txt")
+
+with open(BADWORDS_FILE_PATH, encoding="utf-8") as f:
+    bad_words = set(line.strip().lower() for line in f if line.strip())
+
+def contains_profanity(value):
+    value = value.lower()
+    for word in bad_words:
+        if word in value:
+            return True
+    return False
+
 
 @ratelimit(key='ip', rate='5/m', block=True)
 def register_views(request):
     if request.method == 'POST':
-        username = request.POST.get('username')
-        email = request.POST.get('email')
+        username = request.POST.get('username', '').strip()
+        email = request.POST.get('email', '').strip()
         password = request.POST.get('password')
         confirm_password = request.POST.get('confirm_password')
         captcha_response = request.POST.get('g-recaptcha-response')
         # Check CAPTCHA
+        email = email.lower()
         data = {
             'secret': '6LdsI3orAAAAAEMrToOKWfw6cvzvpWOr03oqtgMM',  # replace with your secret
             'response': captcha_response
@@ -43,7 +56,13 @@ def register_views(request):
             return render(request, 'registration/registration.html', {
                 'error': 'Passwords do not match'
             })
-
+        email_local_part = email.split("@")[0] if "@" in email else email
+        # Check bad words
+        if contains_profanity(username) or contains_profanity(email_local_part):
+            return render(request, 'registration/registration.html', {
+                'error': 'Username or email contains prohibited words.'
+            })
+        
         if User.objects.filter(username=username).exists():
             return render(request, 'registration/registration.html', {
                 'error': 'Username already taken'
