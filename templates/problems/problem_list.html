@@ -278,6 +278,10 @@
             gap: 1.5rem;
         }
 
+        .filter-grid.hidden {
+            display: none;
+        }
+
         .filter-group {
             display: flex;
             flex-direction: column;
@@ -557,7 +561,7 @@
             align-items: center;
         }
 
-        .pagination-controls a {
+        .pagination-controls a, .pagination-controls button {
             padding: 0.75rem 1.5rem;
             background-color: #333;
             color: #e0e0e0;
@@ -565,9 +569,10 @@
             border-radius: 8px;
             border: 1px solid #555;
             transition: all 0.3s ease;
+            cursor: pointer;
         }
 
-        .pagination-controls a:hover {
+        .pagination-controls a:hover, .pagination-controls button:hover {
             background-color: #667eea;
             border-color: #667eea;
         }
@@ -764,15 +769,15 @@
                     </div>
                     <div class="stats-section">
                         <div class="stat-card">
-                            <div class="stat-number">{{problem_total_count}}</div>
+                            <div class="stat-number" id="totalProblems">{{problem_total_count}}</div>
                             <div class="stat-label">Total Problems</div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-number">{{solved_count}}</div>
+                            <div class="stat-number" id="solvedProblems">{{solved_count}}</div>
                             <div class="stat-label">Solved</div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-number">{{progress}}%</div>
+                            <div class="stat-number" id="progressPercent">{{progress}}%</div>
                             <div class="stat-label">Progress</div>
                         </div>
                     </div>
@@ -784,19 +789,19 @@
                         <h2 class="filter-title">🔍 Filter & Search</h2>
                         <button class="filter-toggle" onclick="toggleFilters()">Hide Filters</button>
                     </div>
-                    <form id="filterForm" method="get" class="filter-grid">
+                    <form id="filterForm" class="filter-grid">
                         <div class="filter-group">
                             <label for="search">Search Problems</label>
-                            <input type="text" name="search" id="search" placeholder="Type problem title or keyword..." value="{{ selected_search }}">
+                            <input type="text" name="search" id="search" placeholder="Type problem title or keyword..." value="">
                         </div>
                         
                         <div class="filter-group">
                             <label for="difficulty">Difficulty Level</label>
                             <select name="difficulty" id="difficulty">
                                 <option value="">All Difficulties</option>
-                                <option value="Easy" {% if selected_difficulty == 'Easy' %}selected{% endif %}>🟢 Easy</option>
-                                <option value="Medium" {% if selected_difficulty == 'Medium' %}selected{% endif %}>🟡 Medium</option>
-                                <option value="Hard" {% if selected_difficulty == 'Hard' %}selected{% endif %}>🔴 Hard</option>
+                                <option value="Easy">🟢 Easy</option>
+                                <option value="Medium">🟡 Medium</option>
+                                <option value="Hard">🔴 Hard</option>
                             </select>
                         </div>
 
@@ -804,14 +809,14 @@
                             <label for="tag">Problem Category</label>
                             <select name="tag" id="tag">
                                 <option value="">All Categories</option>
-                                {% for tag in tags %}
+                                        {% for tag in tags %}
                                     <option value="{{ tag.name }}" {% if selected_tag == tag.name %}selected{% endif %}>{{ tag.name }}</option>
                                 {% endfor %}
                             </select>
                         </div>
 
                         <div class="filter-actions">
-                            <button type="submit" class="filter-button">Apply Filters</button>
+                            <button type="button" class="filter-button" onclick="applyFilters()">Apply Filters</button>
                             <button type="button" class="clear-button" onclick="clearFilters()">Clear All</button>
                         </div>
                     </form>
@@ -863,7 +868,11 @@
                                         {% endfor %}
                                     </td>
                                     <td style="text-align: center; color: #888;">
-                                        📝
+                                        {% if problem.id in problem_isSolved %}
+                                            ✅ Solved
+                                        {% else %}
+                                            ❌ Not Solved
+                                        {% endif %}
                                     </td>
                                 </tr>
                                 {% empty %}
@@ -893,7 +902,13 @@
                                     {% endif %}">
                                     {{ problem.difficulty }}
                                 </span>
-                                <span style="color: #888; font-size: 0.9rem;">📝</span>
+                                <span style="color: #888; font-size: 0.9rem;">
+                                        {% if problem.id in problem_isSolved %}
+                                            ✅ Solved
+                                        {% else %}
+                                            ❌ Not Solved
+                                        {% endif %}
+                                </span>
                             </div>
                             <p class="problem-card-description">
                                 {{ problem.short_description|default:"A challenging problem to test your coding skills." }}
@@ -941,8 +956,213 @@
     </div>
 
     <script>
-        // Mock data preserved as per user instruction
-        const allTags = [
-            {name: "Arrays"}, {name: "Hashing"}, {name: "Strings"}, {name: "Sliding Window"},
-            {name: "Divide and Conquer"}, {name: "Linked List"}, {name: "Heap"}, {name: "Stack"},
-            {name: "Two Pointers"}, {name: "Dynamic Programming"}, {name: "Recursion"}, {name:
+        // JavaScript functionality for the CodeChallenge Hub
+        
+        // Toggle sidebar on mobile
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('open');
+        }
+
+        // Toggle filter panel visibility
+        function toggleFilters() {
+            const filterGrid = document.querySelector('.filter-grid');
+            const toggleButton = document.querySelector('.filter-toggle');
+            
+            if (filterGrid.classList.contains('hidden')) {
+                filterGrid.classList.remove('hidden');
+                toggleButton.textContent = 'Hide Filters';
+            } else {
+                filterGrid.classList.add('hidden');
+                toggleButton.textContent = 'Show Filters';
+            }
+        }
+
+        // Switch between table and grid view
+        function switchView(view) {
+            const tableView = document.getElementById('tableView');
+            const gridView = document.getElementById('gridView');
+            const viewButtons = document.querySelectorAll('.view-button');
+            
+            // Update active button
+            viewButtons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Switch views
+            if (view === 'table') {
+                tableView.style.display = 'block';
+                gridView.classList.remove('active');
+            } else {
+                tableView.style.display = 'none';
+                gridView.classList.add('active');
+            }
+        }
+
+        // Apply filters (will work with Django backend)
+        function applyFilters() {
+            const form = document.getElementById('filterForm');
+            const formData = new FormData(form);
+            const params = new URLSearchParams();
+            
+            // Build query parameters
+            for (const [key, value] of formData.entries()) {
+                if (value.trim() !== '') {
+                    params.append(key, value);
+                }
+            }
+            
+            // Redirect with filters
+            const baseUrl = window.location.pathname;
+            const queryString = params.toString();
+            
+            if (queryString) {
+                window.location.href = `${baseUrl}?${queryString}`;
+            } else {
+                window.location.href = baseUrl;
+            }
+        }
+
+        // Clear all filters
+        function clearFilters() {
+            const form = document.getElementById('filterForm');
+            form.reset();
+            
+            // Redirect to base URL without parameters
+            window.location.href = window.location.pathname;
+        }
+
+        // Handle logout
+        function handleLogout() {
+            if (confirm('Are you sure you want to logout?')) {
+                window.location.href = '/logout/';
+            }
+        }
+
+        // Pagination functions (will work with Django pagination)
+        function previousPage() {
+            const currentUrl = new URL(window.location);
+            const currentPage = parseInt(currentUrl.searchParams.get('page') || '1');
+            
+            if (currentPage > 1) {
+                currentUrl.searchParams.set('page', currentPage - 1);
+                window.location.href = currentUrl.toString();
+            }
+        }
+
+        function nextPage() {
+            const currentUrl = new URL(window.location);
+            const currentPage = parseInt(currentUrl.searchParams.get('page') || '1');
+            
+            currentUrl.searchParams.set('page', currentPage + 1);
+            window.location.href = currentUrl.toString();
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Close sidebar when clicking outside on mobile
+            document.addEventListener('click', function(e) {
+                const sidebar = document.getElementById('sidebar');
+                const menuButton = document.querySelector('.mobile-menu-button');
+                
+                if (window.innerWidth <= 1024 && 
+                    !sidebar.contains(e.target) && 
+                    !menuButton.contains(e.target) &&
+                    sidebar.classList.contains('open')) {
+                    sidebar.classList.remove('open');
+                }
+            });
+
+            // Handle form submission with Enter key
+            const searchInput = document.getElementById('search');
+            if (searchInput) {
+                searchInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        applyFilters();
+                    }
+                });
+            }
+
+            // Handle filter changes
+            const difficultySelect = document.getElementById('difficulty');
+            const tagSelect = document.getElementById('tag');
+            
+            if (difficultySelect) {
+                difficultySelect.addEventListener('change', function() {
+                    // Auto-apply filters on select change (optional)
+                    // applyFilters();
+                });
+            }
+            
+            if (tagSelect) {
+                tagSelect.addEventListener('change', function() {
+                    // Auto-apply filters on select change (optional)
+                    // applyFilters();
+                });
+            }
+
+            // Add smooth scrolling for better UX
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                });
+            });
+
+            // Initialize tooltips or other UI enhancements
+            initializeTooltips();
+        });
+
+        // Initialize tooltips for better user experience
+        function initializeTooltips() {
+            const difficultyBadges = document.querySelectorAll('.difficulty-badge');
+            
+            difficultyBadges.forEach(badge => {
+                const difficulty = badge.textContent.trim();
+                let tooltip = '';
+                
+                switch(difficulty) {
+                    case 'Easy':
+                        tooltip = 'Beginner-friendly problems';
+                        break;
+                    case 'Medium':
+                        tooltip = 'Intermediate level challenges';
+                        break;
+                    case 'Hard':
+                        tooltip = 'Advanced algorithmic problems';
+                        break;
+                }
+                
+                if (tooltip) {
+                    badge.setAttribute('title', tooltip);
+                }
+            });
+        }
+
+        // Handle responsive behavior
+        window.addEventListener('resize', function() {
+            const sidebar = document.getElementById('sidebar');
+            
+            if (window.innerWidth > 1024) {
+                sidebar.classList.remove('open');
+            }
+        });
+
+        // Add keyboard navigation support
+        document.addEventListener('keydown', function(e) {
+            // ESC key closes mobile sidebar
+            if (e.key === 'Escape') {
+                const sidebar = document.getElementById('sidebar');
+                if (sidebar.classList.contains('open')) {
+                    sidebar.classList.remove('open');
+                }
+            }
+        });
+    </script>
+</html>

@@ -299,6 +299,26 @@ def leaderboard(request):
     paginator = Paginator(users, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
+    
+    user_count = users.count()
+    if request.user.is_authenticated:
+        user_rank = users.filter(solved_count__gt=users.get(id=request.user.id).solved_count).count() + 1
+        if user_rank > user_count:
+            user_rank = user_count
+    else:
+        user_rank = 0
+        
+    top_percent = int(((user_count - (user_rank - 1)) / user_count) * 100) if user_count > 0 else 0
     if request.htmx:  # If request comes from HTMX, return only the table
-        return render(request, "submissions/partials/leaderboard_table.html", {"users": page_obj})
-    return render(request, 'submissions/leaderboard.html', {'users': page_obj})
+        return render(request, "submissions/partials/leaderboard_table.html", {
+            "users": page_obj,
+            'user_count': user_count,
+            'user_rank': user_rank,
+            'top_percent': top_percent,
+            })
+    return render(request, 'submissions/leaderboard.html', {
+        'users': page_obj,
+        'user_count': user_count,
+        'user_rank': user_rank,
+        'top_percent': top_percent,
+        })

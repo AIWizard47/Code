@@ -26,7 +26,7 @@ def problem_list(request):
     tags = Tag.objects.all()
 
     # Pagination (3 problems per page for testing; you can change it to 10/20 later)
-    paginator = Paginator(problems, 5)
+    paginator = Paginator(problems, 6)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     problem_total_count = problems.count()
@@ -36,6 +36,8 @@ def problem_list(request):
     else:
         solved_count = 0
     progress = int((solved_count / problem_total_count) * 100) if problem_total_count > 0 else 0
+    problem_isSolved = set(Submission.objects.filter(user=request.user, verdict='Accepted').values_list("problem_id", flat=True))
+
     return render(request, 'problems/problem_list.html', {
         'problems': page_obj,   # renamed to page_obj (Django convention)
         'tags': tags,
@@ -44,6 +46,7 @@ def problem_list(request):
         'solved_count' :solved_count,
         'problem_total_count': problem_total_count,
         'progress': progress,
+        'problem_isSolved' :problem_isSolved,
     })
 
 
