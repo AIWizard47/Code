@@ -825,6 +825,51 @@
         .mobile-menu-button {
             display: none;
         }
+
+
+        /* -------------------------------------------------------------------------- */
+        /* Pagination                                                                 */
+        /* -------------------------------------------------------------------------- */
+
+        .pagination-container {
+            padding: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid #3a3a3a;
+        }
+
+        .pagination-info {
+            color: #888;
+            font-size: 0.9rem;
+        }
+
+        .pagination-controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .pagination-controls a, .pagination-controls button {
+            padding: 0.75rem 1.5rem;
+            background-color: #333;
+            color: #e0e0e0;
+            text-decoration: none;
+            border-radius: 8px;
+            border: 1px solid #555;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .pagination-controls a:hover, .pagination-controls button:hover {
+            background-color: #667eea;
+            border-color: #667eea;
+        }
+
+        .pagination-controls span {
+            color: #888;
+            font-weight: 500;
+        }
     </style>
 </head>
 <body class="bg-gray-900 text-gray-100">
@@ -1064,24 +1109,26 @@
                     </div>
 
                     <!-- Pagination (if needed) -->
-                    {% if submissions.has_other_pages %}
                     <div class="pagination-container">
                         <div class="pagination-info">
                             Showing {{ submissions.start_index }}-{{ submissions.end_index }} of {{ submissions.paginator.count }} submissions
                         </div>
                         <div class="pagination-controls">
                             {% if submissions.has_previous %}
-                                <a href="?page={{ submissions.previous_page_number }}">← Previous</a>
+                                <a href="?page={{ submissions.previous_page_number }}{% if selected_tag %}&tag={{ selected_tag }}{% endif %}{% if selected_difficulty %}&difficulty={{ selected_difficulty }}{% endif %}{% if selected_search %}&search={{ selected_search }}{% endif %}">
+                                    ← Previous
+                                </a>
                             {% endif %}
 
                             <span>Page {{ submissions.number }} of {{ submissions.paginator.num_pages }}</span>
 
                             {% if submissions.has_next %}
-                                <a href="?page={{ submissions.next_page_number }}">Next →</a>
+                                <a href="?page={{ submissions.next_page_number }}{% if selected_tag %}&tag={{ selected_tag }}{% endif %}{% if selected_difficulty %}&difficulty={{ selected_difficulty }}{% endif %}{% if selected_search %}&search={{ selected_search }}{% endif %}">
+                                    Next →
+                                </a>
                             {% endif %}
                         </div>
                     </div>
-                    {% endif %}
                 </div>
 
             </main>
