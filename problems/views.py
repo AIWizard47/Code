@@ -36,7 +36,10 @@ def problem_list(request):
     else:
         solved_count = 0
     progress = int((solved_count / problem_total_count) * 100) if problem_total_count > 0 else 0
-    problem_isSolved = set(Submission.objects.filter(user=request.user, verdict='Accepted').values_list("problem_id", flat=True))
+    if request.user.is_authenticated:
+        problem_isSolved = set(Submission.objects.filter(user=request.user, verdict='Accepted').values_list("problem_id", flat=True))
+    else:
+        problem_isSolved = set()
 
     return render(request, 'problems/problem_list.html', {
         'problems': page_obj,   # renamed to page_obj (Django convention)
@@ -87,8 +90,6 @@ def problem_detail(request, slug):
         'selected_language': language,
         'submission_history': submission_history,
     })
-
-
 
 def contest_list(request):
     now = timezone.now()

@@ -46,17 +46,16 @@
         <div class="w-64 bg-gray-900 min-h-screen p-6 fixed left-0 top-0">
             <!-- Logo -->
             <div class="mb-8">
-                <h1 class="text-2xl font-bold text-purple-400 text-glow">CodeChallenge</h1>
+                <h1 class="text-2xl font-bold text-purple-400 text-glow">Code</h1>
                 <p class="text-gray-400 text-sm">Problem Hub</p>
             </div>
-
             <!-- Navigation Menu -->
             <nav class="space-y-2">
                 <a href="/" class="flex items-center space-x-3 text-gray-300 hover:text-white hover:bg-gray-800 px-3 py-2 rounded-lg transition duration-200">
                     <span class="text-red-400">📋</span>
                     <span>Problems</span>
                 </a>
-                <a href="#" class="flex items-center space-x-3 text-gray-300 hover:text-white hover:bg-gray-800 px-3 py-2 rounded-lg transition duration-200">
+                <a href="/contests/" class="flex items-center space-x-3 text-gray-300 hover:text-white hover:bg-gray-800 px-3 py-2 rounded-lg transition duration-200">
                     <span class="text-yellow-400">🏆</span>
                     <span>Contests</span>
                 </a>
@@ -68,14 +67,14 @@
                     <span class="text-orange-400">👑</span>
                     <span>Leaderboard</span>
                 </a>
-                <a href="#" class="flex items-center space-x-3 text-gray-300 hover:text-white hover:bg-gray-800 px-3 py-2 rounded-lg transition duration-200">
+                {% comment %} <a href="#" class="flex items-center space-x-3 text-gray-300 hover:text-white hover:bg-gray-800 px-3 py-2 rounded-lg transition duration-200">
                     <span class="text-green-400">💪</span>
                     <span>Practice</span>
                 </a>
                 <a href="#" class="flex items-center space-x-3 text-gray-300 hover:text-white hover:bg-gray-800 px-3 py-2 rounded-lg transition duration-200">
                     <span class="text-emerald-400">📚</span>
                     <span>Tutorials</span>
-                </a>
+                </a> {% endcomment %}
             </nav>
         </div>
 
@@ -89,8 +88,13 @@
                     <span class="text-blue-400">Leaderboard</span>
                 </div>
                 <div class="flex items-center space-x-4">
-                    <span class="text-gray-300">Welcome, <span class="text-purple-400 font-semibold">sam</span></span>
-                    <a href="/accounts/logout/" class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg text-sm transition duration-200">Logout</a>
+                    {% if user.is_authenticated %}
+                    <span class="text-gray-300">Welcome, <span class="text-purple-400 font-semibold">user</span></span>
+                        <a href="/logout/" class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg text-sm transition duration-200">Logout</a>
+                    {% else %}
+                        <a href="/accounts/login/" class="text-indigo-400 hover:text-indigo-200 font-semibold transition duration-200">Login</a>
+                        <a href="/account/registrations/" class="text-indigo-400 hover:text-indigo-200 font-semibold transition duration-200">SignUp</a>
+                    {% endif %}
                 </div>
             </header>
 

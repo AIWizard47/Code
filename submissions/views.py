@@ -279,11 +279,27 @@ def submit_contest_code(request):
 @login_required
 def submission_history(request):
     submissions = Submission.objects.filter(user=request.user).order_by('-created_at')
-    return render(request, 'submissions/history.html', {'submissions': submissions})
+    paginator = Paginator(submissions, 6)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    if User.is_authenticated:
+        total_submissions = submissions.count()
+        
+        accepted_count = submissions.filter(verdict='Accepted').count()
+    else:
+        total_submissions = 0
+        accepted_count = 0
+    
+    percent_accepted = int(accepted_count / total_submissions * 100) if total_submissions > 0 else 0
+    return render(request, 'submissions/history.html', {
+        'submissions': page_obj,
+        'total_submissions': total_submissions,
+        'accepted_count': accepted_count,
+        'percent_accepted': percent_accepted,
+        })
 
 #for problem detail view
 from django.core.paginator import Paginator
-
 def leaderboard(request):
     # Aggregate unique problems solved per user
     users = (
@@ -305,17 +321,18 @@ def leaderboard(request):
         user_rank = users.filter(solved_count__gt=users.get(id=request.user.id).solved_count).count() + 1
         if user_rank > user_count:
             user_rank = user_count
+        top_percent = int(((user_count - (user_rank - 1)) / user_count) * 100)
     else:
+        top_percent = 0
         user_rank = 0
         
-    top_percent = int(((user_count - (user_rank - 1)) / user_count) * 100) if user_count > 0 else 0
-    if request.htmx:  # If request comes from HTMX, return only the table
-        return render(request, "submissions/partials/leaderboard_table.html", {
-            "users": page_obj,
-            'user_count': user_count,
-            'user_rank': user_rank,
-            'top_percent': top_percent,
-            })
+    # if request.htmx:  # If request comes from HTMX, return only the table
+    #     return render(request, "submissions/partials/leaderboard_table.html", {
+    #         "users": page_obj,
+    #         'user_count': user_count,
+    #         'user_rank': user_rank,
+    #         'top_percent': top_percent,
+    #         })
     return render(request, 'submissions/leaderboard.html', {
         'users': page_obj,
         'user_count': user_count,

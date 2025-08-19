@@ -3,197 +3,1128 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your Submissions</title>
-    <!-- Tailwind CSS CDN -->
+    <title>CodeChallenge Hub - My Submissions</title>
+    <!-- Tailwind CSS CDN for utility classes -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts - Inter for modern typography, with various weights for flexibility -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
-        /* Custom scrollbar for pre elements */
+        /* -------------------------------------------------------------------------- */
+        /* Global & Base Styles                                                       */
+        /* -------------------------------------------------------------------------- */
+
+        html, body {
+            height: 100%;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            font-family: 'Inter', sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
+            line-height: 1.5;
+        }
+
+        /* Custom scrollbar styling for a consistent dark theme look */
         ::-webkit-scrollbar {
             width: 8px;
             height: 8px;
         }
         ::-webkit-scrollbar-track {
-            background: #2d3748; /* Darker track for consistency with body */
+            background: #282828;
             border-radius: 4px;
         }
         ::-webkit-scrollbar-thumb {
-            background: #6b7280; /* Tailwind gray-500 */
+            background: #555;
             border-radius: 4px;
+            border: 1px solid #3a3a3a;
         }
         ::-webkit-scrollbar-thumb:hover {
-            background: #9ca3af; /* Tailwind gray-400 */
-        }
-        /* Styling for pre tags within table cells for better readability */
-        td pre {
-            background-color: #f8fafc; /* Tailwind gray-50 */
-            border: 1px solid #e2e8f0; /* Tailwind gray-200 */
-            padding: 0.75rem;
-            border-radius: 0.375rem; /* rounded-md */
-            font-size: 0.875rem; /* text-sm */
-            line-height: 1.4;
-            overflow-x: auto; /* Enable horizontal scrolling if content overflows */
-            max-height: 100px; /* Limit height for code/output/error preview */
-            white-space: pre-wrap; /* Wrap long lines */
-            word-break: break-all; /* Break long words */
+            background: #777;
         }
 
-        /* Modal specific styles */
+        /* -------------------------------------------------------------------------- */
+        /* Main Container Layout                                                      */
+        /* -------------------------------------------------------------------------- */
+
+        .main-container {
+            display: flex;
+            min-height: 100vh;
+            flex-direction: row;
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* Sidebar Navigation                                                         */
+        /* -------------------------------------------------------------------------- */
+
+        .sidebar {
+            width: 280px;
+            background-color: #1e1e1e;
+            border-right: 1px solid #3a3a3a;
+            padding: 2rem 0;
+            position: fixed;
+            left: 0;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 100;
+        }
+
+        .sidebar-header {
+            padding: 0 2rem 2rem;
+            border-bottom: 1px solid #3a3a3a;
+            margin-bottom: 2rem;
+        }
+
+        .sidebar-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: linear-gradient(90deg, #5e21c3 0%, #2196f3 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .sidebar-subtitle {
+            font-size: 0.9rem;
+            color: #888;
+        }
+
+        .sidebar nav {
+            padding: 0 1rem;
+        }
+
+        .sidebar nav a {
+            display: block;
+            padding: 1rem 1.5rem;
+            margin: 0.5rem 0;
+            border-radius: 8px;
+            color: #b0b0b0;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            position: relative;
+            font-weight: 500;
+        }
+
+        .sidebar nav a:hover, .sidebar nav a.active {
+            background-color: #333;
+            color: #ffffff;
+            transform: translateX(5px);
+        }
+
+        .sidebar nav a.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 4px;
+            height: 60%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            border-radius: 2px;
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* Top Header Bar                                                             */
+        /* -------------------------------------------------------------------------- */
+
+        .top-header {
+            background-color: #1e1e1e;
+            border-bottom: 1px solid #3a3a3a;
+            padding: 1rem 2rem;
+            margin-left: 280px;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .breadcrumb {
+            font-size: 0.9rem;
+            color: #888;
+        }
+
+        .breadcrumb span {
+            color: #667eea;
+        }
+
+        .user-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .user-actions a {
+            color: #b0b0b0;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            border: 1px solid #555;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .user-actions a:hover {
+            background-color: #333;
+            border-color: #667eea;
+            color: #fff;
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* Main Content Area                                                          */
+        /* -------------------------------------------------------------------------- */
+
+        .content-area {
+            margin-left: 280px;
+            padding: 2rem;
+            flex: 1;
+            background-color: #121212;
+        }
+
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 2rem;
+        }
+
+        .page-title-section {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .page-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(90deg, #5e21c3 0%, #2196f3 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-subtitle {
+            color: #888;
+            font-size: 1.1rem;
+        }
+
+        .stats-section {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .stat-card {
+            background-color: #1e1e1e;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            border: 1px solid #3a3a3a;
+            text-align: center;
+            min-width: 100px;
+        }
+
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: #888;
+            margin-top: 0.25rem;
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* Filter Panel                                                               */
+        /* -------------------------------------------------------------------------- */
+
+        .filter-panel {
+            background-color: #1e1e1e;
+            border-radius: 12px;
+            border: 1px solid #3a3a3a;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .filter-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .filter-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #e0e0e0;
+        }
+
+        .filter-toggle {
+            background: none;
+            border: none;
+            color: #667eea;
+            cursor: pointer;
+            font-size: 0.9rem;
+            padding: 0.5rem;
+        }
+
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .filter-grid.hidden {
+            display: none;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .filter-group label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #b0b0b0;
+        }
+
+        .filter-group select, 
+        .filter-group input[type="text"] {
+            background-color: #282828;
+            border: 1px solid #555;
+            color: #e0e0e0;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .filter-group select:focus, 
+        .filter-group input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .filter-actions {
+            grid-column: 1 / -1;
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .filter-button {
+            background: linear-gradient(90deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .filter-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(106, 17, 203, 0.3);
+        }
+
+        .clear-button {
+            background: none;
+            color: #888;
+            border: 1px solid #555;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .clear-button:hover {
+            background-color: #333;
+            color: #fff;
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* Submissions Table Layout                                                    */
+        /* -------------------------------------------------------------------------- */
+
+        .submissions-container {
+            background-color: #1e1e1e;
+            border-radius: 12px;
+            border: 1px solid #3a3a3a;
+            overflow: hidden;
+        }
+
+        .submissions-header {
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid #3a3a3a;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .submissions-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #e0e0e0;
+        }
+
+        .view-toggle {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .view-button {
+            padding: 0.5rem 1rem;
+            background: none;
+            border: 1px solid #555;
+            color: #888;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.8rem;
+        }
+
+        .view-button.active {
+            background-color: #667eea;
+            border-color: #667eea;
+            color: #fff;
+        }
+
+        /* Table View */
+        .submissions-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .submissions-table th {
+            background-color: #282828;
+            padding: 1rem 2rem;
+            text-align: left;
+            font-weight: 600;
+            color: #b0b0b0;
+            font-size: 0.9rem;
+            border-bottom: 1px solid #3a3a3a;
+        }
+
+        .submissions-table td {
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid #3a3a3a;
+            vertical-align: middle;
+        }
+
+        .submissions-table tr:hover {
+            background-color: #252525;
+        }
+
+        .problem-title-cell {
+            font-weight: 600;
+            color: #667eea;
+            font-size: 1.1rem;
+        }
+
+        .problem-title-cell:hover {
+            color: #8da4f7;
+        }
+
+        /* Verdict badges */
+        .verdict-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border: 1px solid;
+        }
+
+        .verdict-accepted {
+            background-color: #1f6b4d;
+            color: #68d391;
+            border-color: #38a169;
+        }
+
+        .verdict-wrong {
+            background-color: #9b2c2c;
+            color: #fc8181;
+            border-color: #e53e3e;
+        }
+
+        .verdict-runtime-error {
+            background-color: #975a16;
+            color: #fbd38d;
+            border-color: #ecc94b;
+        }
+
+        .verdict-tle {
+            background-color: #553c9a;
+            color: #c6a7ff;
+            border-color: #805ad5;
+        }
+
+        .verdict-other {
+            background-color: #3a3a3a;
+            color: #a0aec0;
+            border-color: #555;
+        }
+
+        .actions-cell {
+            text-align: center;
+        }
+
+        .view-details-btn {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.8rem;
+        }
+
+        .view-details-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        /* Grid View */
+        .submissions-grid {
+            display: none;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+            padding: 2rem;
+        }
+
+        .submissions-grid.active {
+            display: grid;
+        }
+
+        .submission-card {
+            background-color: #1e1e1e;
+            border-radius: 12px;
+            padding: 2rem;
+            border: 1px solid #3a3a3a;
+            transition: all 0.3s ease;
+        }
+
+        .submission-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            border-color: #667eea;
+        }
+
+        .submission-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .submission-card-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
+
+        .submission-card-time {
+            color: #888;
+            font-size: 0.8rem;
+        }
+
+        .submission-card-meta {
+            margin-bottom: 1rem;
+        }
+
+        .submission-card-actions {
+            display: flex;
+            justify-content: center;
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* Modal Styles                                                               */
+        /* -------------------------------------------------------------------------- */
+
         .modal-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.75); /* Dark overlay */
+            background-color: rgba(0, 0, 0, 0.75);
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 1000; /* Ensure it's on top */
+            z-index: 1000;
             opacity: 0;
             visibility: hidden;
             transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
         }
+
         .modal-overlay.open {
             opacity: 1;
             visibility: visible;
         }
+
         .modal-content {
-            background-color: white;
-            padding: 2.5rem; /* p-10 */
-            border-radius: 1.5rem; /* rounded-3xl */
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); /* shadow-xl */
+            background-color: #1e1e1e;
+            border: 1px solid #3a3a3a;
+            padding: 2.5rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
             width: 90%;
-            max-width: 800px; /* Max width for the modal */
-            max-height: 90vh; /* Max height to prevent overflow */
-            overflow-y: auto; /* Enable scrolling within modal */
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
             transform: translateY(20px);
             opacity: 0;
             transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
         }
+
         .modal-overlay.open .modal-content {
             transform: translateY(0);
             opacity: 1;
         }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid #3a3a3a;
+            padding-bottom: 1rem;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #e0e0e0;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .modal-close:hover {
+            background-color: #333;
+            color: #fff;
+        }
+
+        .modal-section {
+            margin-bottom: 2rem;
+        }
+
+        .modal-section-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #b0b0b0;
+            margin-bottom: 0.5rem;
+        }
+
         .modal-pre {
-            background-color: #f8fafc; /* Tailwind gray-50 */
-            border: 1px solid #e2e8f0; /* Tailwind gray-200 */
+            background-color: #282828;
+            border: 1px solid #555;
+            color: #e0e0e0;
             padding: 1rem;
-            border-radius: 0.5rem; /* rounded-lg */
-            font-size: 0.875rem; /* text-sm */
+            border-radius: 8px;
+            font-size: 0.875rem;
             line-height: 1.4;
             overflow-x: auto;
             white-space: pre-wrap;
             word-break: break-all;
-            max-height: 250px; /* Max height for code/output/error in modal */
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .copy-btn {
+            background-color: #333;
+            color: #e0e0e0;
+            border: 1px solid #555;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 0.5rem;
+        }
+
+        .copy-btn:hover {
+            background-color: #667eea;
+            border-color: #667eea;
+            color: #fff;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #3a3a3a;
+        }
+
+        .modal-btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid;
+        }
+
+        .modal-btn-primary {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: transparent;
+        }
+
+        .modal-btn-secondary {
+            background: none;
+            color: #888;
+            border-color: #555;
+        }
+
+        .modal-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* Empty State                                                                */
+        /* -------------------------------------------------------------------------- */
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #888;
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #b0b0b0;
+        }
+
+        .empty-state p {
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* Responsive Design                                                          */
+        /* -------------------------------------------------------------------------- */
+
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .top-header,
+            .content-area {
+                margin-left: 0;
+            }
+
+            .top-header {
+                padding-left: 4rem;
+            }
+
+            .mobile-menu-button {
+                display: block;
+                position: fixed;
+                top: 1rem;
+                left: 1rem;
+                z-index: 200;
+                background-color: #1e1e1e;
+                border: 1px solid #3a3a3a;
+                color: #e0e0e0;
+                padding: 0.5rem;
+                border-radius: 6px;
+                cursor: pointer;
+            }
+
+            .content-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .filter-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .submissions-table {
+                font-size: 0.8rem;
+            }
+
+            .submissions-table th,
+            .submissions-table td {
+                padding: 0.75rem 1rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .top-header {
+                padding: 1rem;
+                flex-direction: column;
+                gap: 1rem;
+                align-items: stretch;
+            }
+
+            .user-actions {
+                justify-content: center;
+            }
+
+            .content-area {
+                padding: 1rem;
+            }
+
+            .page-title {
+                font-size: 2rem;
+            }
+
+            .stats-section {
+                justify-content: center;
+            }
+
+            .submissions-table-container {
+                overflow-x: auto;
+            }
+
+            .submissions-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .submission-card {
+                padding: 1.5rem;
+            }
+        }
+
+        .mobile-menu-button {
+            display: none;
         }
     </style>
 </head>
-<body class="bg-gradient-to-br from-gray-900 to-gray-700 min-h-screen font-sans text-gray-100 flex flex-col p-4">
+<body class="bg-gray-900 text-gray-100">
 
-    <!-- Header Navigation -->
-    <header class="w-full flex justify-center py-6 mb-8 px-4">
-        <nav class="space-x-8 text-lg font-medium">
-            <a href="/" class="text-gray-300 hover:text-white transition duration-200 ease-in-out px-4 py-2 rounded-lg">Problems</a>
-            <a href="/submissions/history/" class="text-gray-300 hover:text-white transition duration-200 ease-in-out px-4 py-2 rounded-lg">My Submissions</a>
-            <a href="/submissions/leaderboard/" class="text-gray-300 hover:text-white transition duration-200 ease-in-out px-4 py-2 rounded-lg">Leaderboard</a>
-            {% if user.is_authenticated %}
-                <a href="/accounts/logout/" class="text-gray-300 hover:text-white transition duration-200 ease-in-out px-4 py-2 rounded-lg">Logout</a>
-            {% else %}
-                <a href="/accounts/login/" class="text-gray-300 hover:text-white transition duration-200 ease-in-out px-4 py-2 rounded-lg">Login</a>
-            {% endif %}
-        </nav>
-    </header>
+    <!-- Mobile Menu Button -->
+    <button class="mobile-menu-button" onclick="toggleSidebar()">
+        ☰
+    </button>
 
-    <div class="bg-white p-10 rounded-3xl shadow-2xl w-full mx-auto max-w-7xl flex-grow border border-gray-200 mb-8">
-        <h2 class="text-5xl font-extrabold text-center text-gray-800 mb-10 drop-shadow-lg">Your Submissions</h2>
+    <!-- Main Container -->
+    <div class="main-container">
+        
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-title">Code</div>
+                <div class="sidebar-subtitle">Problem Hub</div>
+            </div>
+            <nav>
+                <a href="/">📝 Problems</a>
+                <a href="/contests/">🏆 Contests</a>
+                <a href="/submissions/history/" class="active">📋 My Submissions</a>
+                <a href="/submissions/leaderboard/">🥇 Leaderboard</a>
+                {% comment %} <a href="/practice/">💪 Practice</a>   {% endcomment %}
+                {% comment %} <a href="/tutorials/">📚 Tutorials</a> {% endcomment %}
+            </nav>
+        </aside>
 
-        <div class="overflow-x-auto shadow-2xl rounded-xl border border-gray-300">
-            <table class="min-w-full divide-y divide-gray-300">
-                <thead class="bg-gray-700">
-                    <tr>
-                        <th scope="col" class="px-6 py-4 text-left text-sm font-semibold text-gray-100 uppercase tracking-wider">
-                            Problem
-                        </th>
-                        <th scope="col" class="px-6 py-4 text-left text-sm font-semibold text-gray-100 uppercase tracking-wider">
-                            Verdict
-                        </th>
-                        <th scope="col" class="px-6 py-4 text-left text-sm font-semibold text-gray-100 uppercase tracking-wider">
-                            Submitted At
-                        </th>
-                        <th scope="col" class="px-6 py-4 text-left text-sm font-semibold text-gray-100 uppercase tracking-wider">
-                            Actions
-                        </th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
-                    {% for submission in submissions %}
-                    <tr class="{% cycle 'bg-white' 'bg-gray-50' %} hover:bg-gray-100 transition duration-150 ease-in-out">
-                        <td class="px-6 py-5 whitespace-nowrap text-lg font-medium text-indigo-700">
-                            <a href="{% url 'problem_detail' submission.problem.slug %}" class="hover:underline">
-                                {{ submission.problem.title }}
-                            </a>
-                        </td>
-                        <td class="px-6 py-5 whitespace-nowrap">
-                            <span class="inline-flex items-center px-4 py-1.5 rounded-full text-sm font-semibold
-                                {% if submission.verdict == 'Accepted' %}
-                                    bg-green-100 text-green-800
-                                {% elif submission.verdict == 'Wrong Answer' or submission.verdict == 'Runtime Error' or submission.verdict == 'Time Limit Exceeded' or submission.verdict == 'Memory Limit Exceeded' %}
-                                    bg-red-100 text-red-800
-                                {% else %}
-                                    bg-yellow-100 text-yellow-800
-                                {% endif %}">
-                                {{ submission.verdict }}
-                            </span>
-                        </td>
-                        <td class="px-6 py-5 whitespace-nowrap text-base text-gray-700">
-                            {{ submission.created_at }}
-                        </td>
-                        <td class="px-6 py-5 whitespace-nowrap text-sm text-gray-700">
-                            <button
-                                onclick="showSubmissionDetails(
-                                    `{{ submission.code|escapejs }}`,
-                                    `{{ submission.output|default:''|escapejs }}`,
-                                    `{{ submission.error|default:''|escapejs }}`
-                                )"
-                                class="px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all duration-200 transform hover:scale-105 active:scale-95"
-                            >
-                                View Details
-                            </button>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+        <!-- Main Content Wrapper -->
+        <div style="flex: 1;">
+            
+            <!-- Top Header Bar -->
+            <header class="top-header">
+                <div class="breadcrumb">
+                    Dashboard / <span>My Submissions</span>
+                </div>
+                <div class="user-actions">
+                    {% if user.is_authenticated %}
+                        <span>Welcome, {{ user.username }}</span>
+                        <a href="/logout/">Logout</a>
+                    {% else %}
+                        <a href="/login/">Login</a>
+                        <a href="/register/">Sign Up</a>
+                    {% endif %}
+                </div>
+            </header>
+
+            <!-- Content Area -->
+            <main class="content-area">
+                
+                <!-- Page Header -->
+                <div class="content-header">
+                    <div class="page-title-section">
+                        <h1 class="page-title">My Submissions</h1>
+                        <p class="page-subtitle">Track your progress and review your solution attempts</p>
+                    </div>
+                    <div class="stats-section">
+                        <div class="stat-card">
+                            <div class="stat-number" id="totalSubmissions">{{total_submissions}}</div>
+                            <div class="stat-label">Total Submissions</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="acceptedSubmissions">{{accepted_count}}</div>
+                            <div class="stat-label">Accepted</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="acceptanceRate">{{percent_accepted}}%</div>
+                            <div class="stat-label">Success Rate</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filter Panel -->
+                <div class="filter-panel">
+                    <div class="filter-header">
+                        <h2 class="filter-title">🔍 Filter & Search</h2>
+                        <button class="filter-toggle" onclick="toggleFilters()">Hide Filters</button>
+                    </div>
+                    <form id="filterForm" class="filter-grid">
+                        <div class="filter-group">
+                            <label for="search">Search Problems</label>
+                            <input type="text" name="search" id="search" placeholder="Type problem title or keyword..." value="">
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label for="verdict">Verdict</label>
+                            <select name="verdict" id="verdict">
+                                <option value="">All Verdicts</option>
+                                <option value="Accepted">✅ Accepted</option>
+                                <option value="Wrong Answer">❌ Wrong Answer</option>
+                                <option value="Runtime Error">⚠️ Runtime Error</option>
+                                <option value="Time Limit Exceeded">⏱️ Time Limit Exceeded</option>
+                                <option value="Memory Limit Exceeded">💾 Memory Limit Exceeded</option>
+                            </select>
+                        </div>
+
+                        <div class="filter-group">
+                            <label for="language">Language</label>
+                            <select name="language" id="language">
+                                <option value="">All Languages</option>
+                                <option value="Python">🐍 Python</option>
+                                <option value="Java">☕ Java</option>
+                                <option value="C++">⚡ C++</option>
+                                <option value="JavaScript">🟨 JavaScript</option>
+                            </select>
+                        </div>
+
+                        <div class="filter-actions">
+                            <button type="button" class="filter-button" onclick="applyFilters()">Apply Filters</button>
+                            <button type="button" class="clear-button" onclick="clearFilters()">Clear All</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Submissions Container -->
+                <div class="submissions-container">
+                    <div class="submissions-header">
+                        <h2 class="submissions-title">Submission History</h2>
+                        <div class="view-toggle">
+                            <button class="view-button active" onclick="switchView('table')">📋 Table</button>
+                            <button class="view-button" onclick="switchView('grid')">⊞ Grid</button>
+                        </div>
+                    </div>
+
+                    <!-- Table View -->
+                    <div class="submissions-table-container" id="tableView">
+                        <table class="submissions-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 35%;">Problem</th>
+                                    <th style="width: 20%;">Verdict</th>
+                                    <th style="width: 20%;">Submitted At</th>
+                                    <th style="width: 25%;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="submissionTableBody">
+                                {% for submission in submissions %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'problem_detail' submission.problem.slug %}" class="problem-title-cell">{{ submission.problem.title }}</a>
+                                        <div style="color: #888; font-size: 0.9rem; margin-top: 0.25rem;">
+                                            Problem #{{ submission.problem.id }}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="verdict-badge
+                                            {% if submission.verdict == 'Accepted' %}verdict-accepted
+                                            {% elif submission.verdict == 'Wrong Answer' %}verdict-wrong
+                                            {% elif submission.verdict == 'Runtime Error' %}verdict-runtime-error
+                                            {% elif submission.verdict == 'Time Limit Exceeded' %}verdict-tle
+                                            {% else %}verdict-other
+                                            {% endif %}">
+                                            {{ submission.verdict }}
+                                        </span>
+                                    </td>
+                                    <td style="color: #c0c0c0;">
+                                        {{ submission.created_at|date:"M j, Y" }}<br>
+                                        <span style="color: #888; font-size: 0.8rem;">{{ submission.created_at|time:"g:i A" }}</span>
+                                    </td>
+                                    <td class="actions-cell">
+                                        <button
+                                            onclick="showSubmissionDetails(
+                                                `{{ submission.code|escapejs }}`,
+                                                `{{ submission.output|default:''|escapejs }}`,
+                                                `{{ submission.error|default:''|escapejs }}`,
+                                                '{{ submission.problem.title|escapejs }}',
+                                                '{{ submission.verdict|escapejs }}',
+                                                '{{ submission.created_at|escapejs }}'
+                                            )"
+                                            class="view-details-btn"
+                                        >
+                                            View Details
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="empty-state">
+                                        <div class="empty-state-icon">📝</div>
+                                        <h3>No Submissions Found</h3>
+                                        <p>You haven't made any submissions yet.<br>Start solving problems to see your submission history!</p>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Grid View -->
+                    <div class="submissions-grid" id="gridView">
+                        {% for submission in submissions %}
+                        <div class="submission-card">
+                            <div class="submission-card-header">
+                                <div>
+                                    <h3 class="submission-card-title">{{ submission.problem.title }}</h3>
+                                    <div class="submission-card-time">{{ submission.created_at|date:"M j, Y g:i A" }}</div>
+                                </div>
+                                <span class="verdict-badge
+                                    {% if submission.verdict == 'Accepted' %}verdict-accepted
+                                    {% elif submission.verdict == 'Wrong Answer' %}verdict-wrong
+                                    {% elif submission.verdict == 'Runtime Error' %}verdict-runtime-error
+                                    {% elif submission.verdict == 'Time Limit Exceeded' %}verdict-tle
+                                    {% else %}verdict-other
+                                    {% endif %}">
+                                    {{ submission.verdict }}
+                                </span>
+                            </div>
+                            <div class="submission-card-meta">
+                                <p style="color: #c0c0c0; margin-bottom: 0.5rem;">Problem #{{ submission.problem.id }}</p>
+                                <p style="color: #888; font-size: 0.9rem;">
+                                    {% if submission.language %}Language: {{ submission.language }}{% endif %}
+                                </p>
+                            </div>
+                            <div class="submission-card-actions">
+                                <button
+                                    onclick="showSubmissionDetails(
+                                        `{{ submission.code|escapejs }}`,
+                                        `{{ submission.output|default:''|escapejs }}`,
+                                        `{{ submission.error|default:''|escapejs }}`,
+                                        '{{ submission.problem.title|escapejs }}',
+                                        '{{ submission.verdict|escapejs }}',
+                                        '{{ submission.created_at|escapejs }}'
+                                    )"
+                                    class="view-details-btn"
+                                >
+                                    View Details
+                                </button>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="empty-state" style="grid-column: 1 / -1;">
+                            <div class="empty-state-icon">📝</div>
+                            <h3>No Submissions Found</h3>
+                            <p>You haven't made any submissions yet.<br>Start solving problems to see your submission history!</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Pagination (if needed) -->
+                    {% if submissions.has_other_pages %}
+                    <div class="pagination-container">
+                        <div class="pagination-info">
+                            Showing {{ submissions.start_index }}-{{ submissions.end_index }} of {{ submissions.paginator.count }} submissions
+                        </div>
+                        <div class="pagination-controls">
+                            {% if submissions.has_previous %}
+                                <a href="?page={{ submissions.previous_page_number }}">← Previous</a>
+                            {% endif %}
+
+                            <span>Page {{ submissions.number }} of {{ submissions.paginator.num_pages }}</span>
+
+                            {% if submissions.has_next %}
+                                <a href="?page={{ submissions.next_page_number }}">Next →</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+            </main>
         </div>
     </div>
 
     <!-- Submission Details Modal -->
     <div id="submissionModal" class="modal-overlay">
         <div class="modal-content">
-            <h3 class="text-2xl font-bold text-gray-800 mb-4">Submission Details</h3>
+            <div class="modal-header">
+                <h3 class="modal-title">Submission Details</h3>
+                <button class="modal-close" onclick="hideSubmissionDetails()">&times;</button>
+            </div>
 
-            <div class="space-y-4">
-                <div>
-                    <p class="font-semibold text-gray-700 mb-1">Code:</p>
-                    <pre id="modalCode" class="modal-pre text-gray-800"></pre>
-                    <button onclick="copyCodeToClipboard('modalCode')" class="mt-2 px-4 py-2 bg-blue-500 text-white text-sm font-semibold rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 transition duration-200">
-                        Copy Code
-                    </button>
-                </div>
-
-                <div>
-                    <p class="font-semibold text-gray-700 mb-1">Output:</p>
-                    <pre id="modalOutput" class="modal-pre text-gray-800"></pre>
-                </div>
-
-                <div>
-                    <p class="font-semibold text-red-600 mb-1">Error:</p>
-                    <pre id="modalError" class="modal-pre text-red-800 bg-red-50 border-red-200"></pre>
+            <div class="modal-section">
+                <div class="modal-section-title">Problem Information</div>
+                <div style="background-color: #282828; border: 1px solid #555; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                    <p><strong>Problem:</strong> <span id="modalProblem" style="color: #667eea;"></span></p>
+                    <p><strong>Verdict:</strong> <span id="modalVerdict"></span></p>
+                    <p><strong>Submitted:</strong> <span id="modalTime" style="color: #888;"></span></p>
                 </div>
             </div>
 
-            <div class="flex justify-end mt-6">
-                <button onclick="hideSubmissionDetails()" class="px-6 py-3 bg-gray-300 text-gray-800 font-semibold rounded-lg shadow-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200 transform hover:scale-105 active:scale-95">
+            <div class="modal-section">
+                <div class="modal-section-title">Source Code</div>
+                <pre id="modalCode" class="modal-pre"></pre>
+                <button onclick="copyCodeToClipboard('modalCode')" class="copy-btn">
+                    📋 Copy Code
+                </button>
+            </div>
+
+            <div class="modal-section">
+                <div class="modal-section-title">Output</div>
+                <pre id="modalOutput" class="modal-pre" style="min-height: 60px;"></pre>
+            </div>
+
+            <div class="modal-section">
+                <div class="modal-section-title">Error Details</div>
+                <pre id="modalError" class="modal-pre" style="background-color: #2d1b1b; border-color: #8b5050; color: #fca5a5; min-height: 60px;"></pre>
+            </div>
+
+            <div class="modal-actions">
+                <button onclick="hideSubmissionDetails()" class="modal-btn modal-btn-secondary">
                     Close
                 </button>
             </div>
@@ -201,143 +1132,296 @@
     </div>
 
     <script>
-        /**
-         * Displays the submission details in a modal.
-         * @param {string} code The submission code.
-         * @param {string} output The standard output of the submission.
-         * @param {string} error The error output of the submission.
-         */
-        function showSubmissionDetails(code, output, error) {
+        // JavaScript functionality for the Submissions History page
+        
+        // Sample data for demonstration (remove in production)
+        const sampleSubmissions = [
+            {
+                problem: { title: "Two Sum", slug: "two-sum", id: 1 },
+                verdict: "Accepted",
+                created_at: "2023-10-26 10:30:00",
+                language: "Python",
+                code: "def two_sum(nums, target):\n    hashmap = {}\n    for i, num in enumerate(nums):\n        complement = target - num\n        if complement in hashmap:\n            return [hashmap[complement], i]\n        hashmap[num] = i\n    return []",
+                output: "Test Case 1: Pass\nTest Case 2: Pass\nTest Case 3: Pass\nAll tests passed successfully!",
+                error: ""
+            },
+            {
+                problem: { title: "Longest Substring", slug: "longest-substring", id: 2 },
+                verdict: "Wrong Answer",
+                created_at: "2023-10-26 11:05:00",
+                language: "Python",
+                code: "def lengthOfLongestSubstring(s):\n    # This is a sample incorrect solution\n    # It incorrectly returns a fixed value\n    return 0",
+                output: "Test Case 1: Pass\nTest Case 2: Failed\nExpected: 3\nActual: 0",
+                error: ""
+            },
+            {
+                problem: { title: "Median of Two Sorted Arrays", slug: "median-sorted-arrays", id: 3 },
+                verdict: "Runtime Error",
+                created_at: "2023-10-26 12:00:00",
+                language: "Python",
+                code: "def findMedianSortedArrays(nums1, nums2):\n    # Code with a runtime error example\n    result = 1 / 0 # Division by zero error\n    return result",
+                output: "",
+                error: "Traceback (most recent call last):\n  File \"solution.py\", line 3, in findMedianSortedArrays\n    result = 1 / 0 # Division by zero error\nZeroDivisionError: division by zero"
+            },
+            {
+                problem: { title: "Binary Search", slug: "binary-search", id: 4 },
+                verdict: "Time Limit Exceeded",
+                created_at: "2023-10-26 13:15:00",
+                language: "Java",
+                code: "class Solution {\n    public int search(int[] nums, int target) {\n        // Inefficient linear search causing TLE\n        for (int i = 0; i < nums.length; i++) {\n            for (int j = 0; j < nums.length; j++) {\n                if (nums[i] == target) {\n                    return i;\n                }\n            }\n        }\n        return -1;\n    }\n}",
+                output: "",
+                error: "Time Limit Exceeded: Your solution took longer than the allowed time limit of 2 seconds."
+            }
+        ];
+
+        // Toggle sidebar on mobile
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('open');
+        }
+
+        // Toggle filter panel visibility
+        function toggleFilters() {
+            const filterGrid = document.querySelector('.filter-grid');
+            const toggleButton = document.querySelector('.filter-toggle');
+            
+            if (filterGrid.classList.contains('hidden')) {
+                filterGrid.classList.remove('hidden');
+                toggleButton.textContent = 'Hide Filters';
+            } else {
+                filterGrid.classList.add('hidden');
+                toggleButton.textContent = 'Show Filters';
+            }
+        }
+
+        // Switch between table and grid view
+        function switchView(view) {
+            const tableView = document.getElementById('tableView');
+            const gridView = document.getElementById('gridView');
+            const viewButtons = document.querySelectorAll('.view-button');
+            
+            // Update active button
+            viewButtons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Switch views
+            if (view === 'table') {
+                tableView.style.display = 'block';
+                gridView.classList.remove('active');
+            } else {
+                tableView.style.display = 'none';
+                gridView.classList.add('active');
+            }
+        }
+
+        // Apply filters (will work with Django backend)
+        function applyFilters() {
+            const form = document.getElementById('filterForm');
+            const formData = new FormData(form);
+            const params = new URLSearchParams();
+            
+            // Build query parameters
+            for (const [key, value] of formData.entries()) {
+                if (value.trim() !== '') {
+                    params.append(key, value);
+                }
+            }
+            
+            // Redirect with filters
+            const baseUrl = window.location.pathname;
+            const queryString = params.toString();
+            
+            if (queryString) {
+                window.location.href = `${baseUrl}?${queryString}`;
+            } else {
+                window.location.href = baseUrl;
+            }
+        }
+
+        // Clear all filters
+        function clearFilters() {
+            const form = document.getElementById('filterForm');
+            form.reset();
+            
+            // Redirect to base URL without parameters
+            window.location.href = window.location.pathname;
+        }
+
+        // Show submission details modal
+        function showSubmissionDetails(code, output, error, problemTitle, verdict, createdAt) {
             document.getElementById('modalCode').textContent = code;
-            document.getElementById('modalOutput').textContent = output || 'No output.';
-            document.getElementById('modalError').textContent = error || 'No error.';
+            document.getElementById('modalOutput').textContent = output || 'No output available.';
+            document.getElementById('modalError').textContent = error || 'No errors reported.';
+            document.getElementById('modalProblem').textContent = problemTitle;
+            document.getElementById('modalVerdict').textContent = verdict;
+            document.getElementById('modalTime').textContent = createdAt;
+
+            // Apply verdict styling to modal verdict
+            const modalVerdict = document.getElementById('modalVerdict');
+            modalVerdict.className = 'verdict-badge';
+            
+            if (verdict === 'Accepted') {
+                modalVerdict.classList.add('verdict-accepted');
+            } else if (verdict === 'Wrong Answer') {
+                modalVerdict.classList.add('verdict-wrong');
+            } else if (verdict === 'Runtime Error') {
+                modalVerdict.classList.add('verdict-runtime-error');
+            } else if (verdict === 'Time Limit Exceeded') {
+                modalVerdict.classList.add('verdict-tle');
+            } else {
+                modalVerdict.classList.add('verdict-other');
+            }
 
             // Show the modal
             document.getElementById('submissionModal').classList.add('open');
         }
 
-        /**
-         * Hides the submission details modal.
-         */
+        // Hide submission details modal
         function hideSubmissionDetails() {
             document.getElementById('submissionModal').classList.remove('open');
         }
 
-        /**
-         * Copies the content of a specified pre tag to the clipboard.
-         * @param {string} elementId The ID of the pre element whose content should be copied.
-         */
+        // Copy code to clipboard
         function copyCodeToClipboard(elementId) {
             const element = document.getElementById(elementId);
             if (element) {
                 const textToCopy = element.textContent;
-                // Use the older document.execCommand for clipboard copy due to iframe restrictions
+                
+                // Create a temporary textarea
                 const textarea = document.createElement('textarea');
                 textarea.value = textToCopy;
-                textarea.style.position = 'fixed'; // Avoid scrolling to bottom
-                textarea.style.opacity = '0'; // Hide textarea
+                textarea.style.position = 'fixed';
+                textarea.style.opacity = '0';
                 document.body.appendChild(textarea);
                 textarea.select();
+                
                 try {
                     document.execCommand('copy');
-                    alert('Code copied to clipboard!'); // Use a custom message box in a real app
+                    
+                    // Show success feedback
+                    const btn = event.target;
+                    const originalText = btn.textContent;
+                    btn.textContent = '✅ Copied!';
+                    btn.style.background = '#1f6b4d';
+                    
+                    setTimeout(() => {
+                        btn.textContent = originalText;
+                        btn.style.background = '';
+                    }, 2000);
+                    
                 } catch (err) {
                     console.error('Failed to copy text:', err);
-                    alert('Failed to copy code. Please copy manually.'); // Use a custom message box
+                    alert('Failed to copy code. Please copy manually.');
                 } finally {
                     document.body.removeChild(textarea);
                 }
             }
         }
 
-        // Example 'submissions' data structure for local testing:
-        // In a real application, the `submissions` variable would be populated by your backend context.
-        // This script block is merely for demonstrating the HTML structure locally.
-        const submissions = [
-            {
-                problem: { title: "Two Sum", slug: "two-sum" },
-                verdict: "Accepted",
-                created_at: "2023-10-26 10:30:00",
-                code: "def two_sum(nums, target):\n    hashmap = {}\n    for i, num in enumerate(nums):\n        complement = target - num\n        if complement in hashmap:\n            return [hashmap[complement], i]\n        hashmap[num] = i\n    return []",
-                output: "Test Case 1: Pass\nTest Case 2: Pass\nTest Case 3: Pass",
-                error: ""
-            },
-            {
-                problem: { title: "Longest Substring", slug: "longest-substring" },
-                verdict: "Wrong Answer",
-                created_at: "2023-10-26 11:05:00",
-                code: "def lengthOfLongestSubstring(s):\n    # This is a sample incorrect solution\n    # It incorrectly returns a fixed value\n    return 0",
-                output: "Test Case 1: Pass\nTest Case 2: Failed\nExpected:\nabc\nActual:\n",
-                error: ""
-            },
-            {
-                problem: { title: "Median of Two Sorted Arrays", slug: "median-sorted-arrays" },
-                verdict: "Runtime Error",
-                created_at: "2023-10-26 12:00:00",
-                code: "def findMedianSortedArrays(nums1, nums2):\n    # Code with a runtime error example\n    result = 1 / 0 # Division by zero error\n    return result",
-                output: "",
-                error: "Traceback (most recent call last):\n  File \"solution.py\", line 3, in findMedianSortedArrays\n    result = 1 / 0 # Division by zero error\nZeroDivisionError: division by zero"
-            },
-            {
-                problem: { title: "Two Sum", slug: "two-sum" },
-                verdict: "Time Limit Exceeded",
-                created_at: "2023-10-26 13:15:00",
-                code: "def two_sum(nums, target):\n    # This code might cause a TLE due to nested loops on large inputs\n    n = len(nums)\n    for i in range(n):\n        for j in range(n):\n            if nums[i] + nums[j] == target and i != j:\n                return [i, j]\n    return []",
-                output: "",
-                error: "Execution timed out. Your code ran longer than the allowed time limit."
-            }
-        ];
-
-        // For local testing without a Django backend, you can uncomment this to populate the table dynamically:
-        /*
-        document.addEventListener('DOMContentLoaded', () => {
-            const tbody = document.querySelector('.min-w-full tbody');
-            tbody.innerHTML = ''; // Clear existing content if any
-
-            submissions.forEach((submission, index) => {
-                const row = document.createElement('tr');
-                row.className = `${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'} hover:bg-gray-100 transition duration-150 ease-in-out`;
-
-                let verdictClass = '';
-                if (submission.verdict === 'Accepted') {
-                    verdictClass = 'bg-green-100 text-green-800';
-                } else if (['Wrong Answer', 'Runtime Error', 'Time Limit Exceeded', 'Memory Limit Exceeded'].includes(submission.verdict)) {
-                    verdictClass = 'bg-red-100 text-red-800';
-                } else {
-                    verdictClass = 'bg-yellow-100 text-yellow-800';
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Close sidebar when clicking outside on mobile
+            document.addEventListener('click', function(e) {
+                const sidebar = document.getElementById('sidebar');
+                const menuButton = document.querySelector('.mobile-menu-button');
+                
+                if (window.innerWidth <= 1024 && 
+                    !sidebar.contains(e.target) && 
+                    !menuButton.contains(e.target) &&
+                    sidebar.classList.contains('open')) {
+                    sidebar.classList.remove('open');
                 }
-
-                row.innerHTML = `
-                    <td class="px-6 py-5 whitespace-nowrap text-lg font-medium text-indigo-700">
-                        <a href="/problems/${submission.problem.slug}/" class="hover:underline">
-                            ${submission.problem.title}
-                        </a>
-                    </td>
-                    <td class="px-6 py-5 whitespace-nowrap">
-                        <span class="inline-flex items-center px-4 py-1.5 rounded-full text-sm font-semibold ${verdictClass}">
-                            ${submission.verdict}
-                        </span>
-                    </td>
-                    <td class="px-6 py-5 whitespace-nowrap text-base text-gray-700">
-                        ${submission.created_at}
-                    </td>
-                    <td class="px-6 py-5 whitespace-nowrap text-sm text-gray-700">
-                        <button
-                            onclick="showSubmissionDetails(
-                                \`${submission.code.replace(/`/g, '\\`')}\`,
-                                \`${submission.output.replace(/`/g, '\\`')}\`,
-                                \`${submission.error.replace(/`/g, '\\`')}\`
-                            )"
-                            class="px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all duration-200 transform hover:scale-105 active:scale-95"
-                        >
-                            View Details
-                        </button>
-                    </td>
-                `;
-                tbody.appendChild(row);
             });
+
+            // Close modal when clicking outside
+            document.getElementById('submissionModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    hideSubmissionDetails();
+                }
+            });
+
+            // Handle form submission with Enter key
+            const searchInput = document.getElementById('search');
+            if (searchInput) {
+                searchInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        applyFilters();
+                    }
+                });
+            }
+
+            // Add keyboard shortcuts
+            document.addEventListener('keydown', function(e) {
+                // ESC key closes modal and sidebar
+                if (e.key === 'Escape') {
+                    hideSubmissionDetails();
+                    const sidebar = document.getElementById('sidebar');
+                    if (sidebar.classList.contains('open')) {
+                        sidebar.classList.remove('open');
+                    }
+                }
+            });
+
+            // Initialize tooltips
+            initializeTooltips();
         });
-        */
+
+        // Initialize tooltips for better user experience
+        function initializeTooltips() {
+            const verdictBadges = document.querySelectorAll('.verdict-badge');
+            
+            verdictBadges.forEach(badge => {
+                const verdict = badge.textContent.trim();
+                let tooltip = '';
+                
+                switch(verdict) {
+                    case 'Accepted':
+                        tooltip = 'Your solution passed all test cases';
+                        break;
+                    case 'Wrong Answer':
+                        tooltip = 'Your solution produced incorrect output';
+                        break;
+                    case 'Runtime Error':
+                        tooltip = 'Your solution crashed during execution';
+                        break;
+                    case 'Time Limit Exceeded':
+                        tooltip = 'Your solution took too long to execute';
+                        break;
+                    case 'Memory Limit Exceeded':
+                        tooltip = 'Your solution used too much memory';
+                        break;
+                }
+                
+                if (tooltip) {
+                    badge.setAttribute('title', tooltip);
+                }
+            });
+        }
+
+        // Handle responsive behavior
+        window.addEventListener('resize', function() {
+            const sidebar = document.getElementById('sidebar');
+            
+            if (window.innerWidth > 1024) {
+                sidebar.classList.remove('open');
+            }
+        });
+
+        // Update stats dynamically (for demonstration)
+        function updateStats() {
+            // These would be calculated from actual submission data
+            const totalSubmissions = sampleSubmissions.length;
+            const acceptedSubmissions = sampleSubmissions.filter(s => s.verdict === 'Accepted').length;
+            const acceptanceRate = totalSubmissions > 0 ? Math.round((acceptedSubmissions / totalSubmissions) * 100) : 0;
+            
+            document.getElementById('totalSubmissions').textContent = totalSubmissions;
+            document.getElementById('acceptedSubmissions').textContent = acceptedSubmissions;
+            document.getElementById('acceptanceRate').textContent = acceptanceRate + '%';
+        }
+
+        // Call updateStats on page load
+        // updateStats(); // Uncomment for demo data
     </script>
 </body>
 </html>
