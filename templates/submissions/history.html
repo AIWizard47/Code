@@ -890,7 +890,7 @@
             </div>
             <nav>
                 <a href="/">📝 Problems</a>
-                <a href="/contests/">🏆 Contests</a>
+                <a href="/problems/contests/">🏆 Contests</a>
                 <a href="/submissions/history/" class="active">📋 My Submissions</a>
                 <a href="/submissions/leaderboard/">🥇 Leaderboard</a>
                 {% comment %} <a href="/practice/">💪 Practice</a>   {% endcomment %}
@@ -909,7 +909,7 @@
                 <div class="user-actions">
                     {% if user.is_authenticated %}
                         <span>Welcome, {{ user.username }}</span>
-                        <a href="/logout/">Logout</a>
+                        <a href="/problems/logout/">Logout</a>
                     {% else %}
                         <a href="/login/">Login</a>
                         <a href="/register/">Sign Up</a>
