@@ -24,6 +24,8 @@ def contains_profanity(value):
 
 @ratelimit(key='ip', rate='5/m', block=True)
 def register_views(request):
+    if request.user.is_authenticated:
+        return redirect("/")
     if request.method == 'POST':
         username = request.POST.get('username', '').strip()
         email = request.POST.get('email', '').strip()

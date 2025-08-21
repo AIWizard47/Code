@@ -51,7 +51,7 @@
             </div>
             <!-- Navigation Menu -->
             <nav class="space-y-2">
-                <a href="/" class="flex items-center space-x-3 text-gray-300 hover:text-white hover:bg-gray-800 px-3 py-2 rounded-lg transition duration-200">
+                <a href="/problems/" class="flex items-center space-x-3 text-gray-300 hover:text-white hover:bg-gray-800 px-3 py-2 rounded-lg transition duration-200">
                     <span class="text-red-400">📋</span>
                     <span>Problems</span>
                 </a>
@@ -89,7 +89,7 @@
                 </div>
                 <div class="flex items-center space-x-4">
                     {% if user.is_authenticated %}
-                    <span class="text-gray-300">Welcome, <span class="text-purple-400 font-semibold">user</span></span>
+                    <span class="text-gray-300">Welcome, <span class="text-purple-400 font-semibold">{{user}}</span></span>
                         <a href="/problems/logout/" class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg text-sm transition duration-200">Logout</a>
                     {% else %}
                         <a href="/accounts/login/" class="text-indigo-400 hover:text-indigo-200 font-semibold transition duration-200">Login</a>
