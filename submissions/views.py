@@ -134,6 +134,8 @@ def run(request):
         try:
             for idx, test_case in enumerate(problem.test_cases.all()):
                                 # Call sandbox microservice
+                if not test_case.is_sample:
+                    continue
                 response = requests.post("https://sandbox-production-ed09.up.railway.app/run/", json={
                     "code": code,
                     "language": language,

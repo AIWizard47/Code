@@ -392,14 +392,14 @@
                 <div class="grid grid-cols-1 gap-3">
                     {% for sub in submission_history %}
                     <div class="submission-card">
-                        <p class="text-sm text-gray-400 mb-1"><strong>Submission #{{ forloop.counter }}</strong></p>
+                        <p class="text-sm text-gray-400 mb-1"><strong>Submission #{{ forloop.counter0|add:submission_history.start_index }}</strong></p>
                         <p class="text-base text-gray-200"><strong>Time:</strong> {{ sub.created_at|date:"Y-m-d H:i" }}</p>
                         <p class="text-base text-gray-200"><strong>Language:</strong> {{ sub.language|title }}</p>
                         <p class="text-base">
                             <strong>Verdict:</strong> 
                             <span class="
                                 {% if sub.verdict == 'Accepted' %}verdict-accepted
-                                {% elif sub.verdict == 'Wrong Answer' or sub.verdict == 'Time Limit Exceeded' or sub.verdict == 'Memory Limit Exceeded' or sub.verdict == 'Runtime Error' %}verdict-wrong
+                                {% elif sub.verdict in 'Wrong Answer Time Limit Exceeded Memory Limit Exceeded Runtime Error' %}verdict-wrong
                                 {% else %}verdict-other
                                 {% endif %}
                             ">{{ sub.verdict }}</span>
@@ -410,7 +410,25 @@
                     <p class="text-lg text-gray-300">No submissions yet.</p>
                     {% endfor %}
                 </div>
+
+                <!-- ✅ Pagination controls -->
+                {% if submission_history.has_other_pages %}
+                <div class="flex justify-center mt-4 space-x-2">
+                    {% if submission_history.has_previous %}
+                    <a href="?page={{ submission_history.previous_page_number }}" class="px-3 py-1 bg-gray-700 text-gray-300 rounded hover:bg-gray-600">Previous</a>
+                    {% endif %}
+
+                    <span class="px-3 py-1 bg-indigo-600 text-white rounded">
+                        Page {{ submission_history.number }} of {{ submission_history.paginator.num_pages }}
+                    </span>
+
+                    {% if submission_history.has_next %}
+                    <a href="?page={{ submission_history.next_page_number }}" class="px-3 py-1 bg-gray-700 text-gray-300 rounded hover:bg-gray-600">Next</a>
+                    {% endif %}
+                </div>
+                {% endif %}
             </div>
+
 
             <div class="mt-auto pt-4 border-t border-gray-600 flex justify-around items-center flex-shrink-0">
                 <button class="text-gray-400 hover:text-indigo-400 transition-colors duration-200 flex items-center space-x-1">

@@ -84,11 +84,15 @@ def problem_detail(request, slug):
         language = default_language
         submission_history = Submission.objects.none()
 
+    paginator = Paginator(submission_history, 4)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
     return render(request, 'problems/problem_detail.html', {
         'problem': problem,
         'last_submission': last_submission,
         'selected_language': language,
-        'submission_history': submission_history,
+        'submission_history': page_obj,
     })
 
 def contest_list(request):
