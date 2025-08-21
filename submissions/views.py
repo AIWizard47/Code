@@ -113,6 +113,104 @@ def submit_code(request):
 
     return JsonResponse({'error': 'Invalid request'}, status=400)
 
+@csrf_exempt
+@ratelimit(key='ip', rate='1/s', block=True,method=ratelimit.ALL)
+def run(request):
+    user = request.user
+    if not user.is_authenticated:
+        return JsonResponse({'error': 'Login required'}, status=403)
+
+    if request.method == 'POST':
+        problem_id = request.POST.get('problem_id')
+        code = request.POST.get('code')
+        language = request.POST.get('language')
+
+        problem = get_object_or_404(Problem, id=problem_id)
+
+        verdict = 'Accepted'
+        error = ''
+        test_results = []
+
+        try:
+            for idx, test_case in enumerate(problem.test_cases.all()):
+                                # Call sandbox microservice
+                response = requests.post("https://sandbox-production-ed09.up.railway.app/run/", json={
+                    "code": code,
+                    "language": language,
+                    "input": test_case.input_data
+                }, timeout=10)
+
+                if response.status_code != 200:
+                    verdict = "Sandbox Error"
+                    error = response.text
+                    break
+
+                result = response.json()
+                stdout = result.get("output", "")
+                stderr = result.get("error", "")
+                # stdout, stderr = run_code(code, language, test_case.input_data)
+                # print(result)
+                def normalize_output(output):
+                    lines = output.strip().replace('\r\n', '\n').split('\n')
+                    return '\n'.join(line.rstrip() for line in lines)
+
+                actual_output = normalize_output(stdout)
+                expected_output = normalize_output(test_case.expected_output)
+
+                if stderr:
+                    verdict = 'Runtime Error'
+                    error = stderr
+                    test_results.append({
+                        'test_case': idx + 1,
+                        'status': 'Runtime Error',
+                        'error': stderr
+                    })
+                    break
+
+                if actual_output != expected_output:
+                    verdict = 'Wrong Answer'
+                    test_results.append({
+                        'test_case': idx + 1,
+                        'status': 'Failed',
+                        'expected': expected_output,
+                        'actual': actual_output
+                    })
+                    break
+                else:
+                    test_results.append({
+                        'test_case': idx + 1,
+                        'status': 'Passed'
+                    })
+
+        except subprocess.TimeoutExpired:
+            verdict = 'Time Limit Exceeded'
+            test_results.append({
+                'test_case': idx + 1,
+                'status': 'Time Limit Exceeded'
+            })
+
+        except Exception as e:
+            verdict = 'Runtime Error'
+            error = str(e)
+
+        # Save submission record
+        # Submission.objects.create(
+        #     user=user,
+        #     problem=problem,
+        #     code=code,
+        #     language=language,
+        #     verdict=verdict,
+        #     output=str(test_results),
+        #     error=error
+        # )
+
+        return JsonResponse({
+            'verdict': verdict,
+            'test_results': test_results,
+            'error': error
+        })
+
+    return JsonResponse({'error': 'Invalid request'}, status=400)
 
 def run_code(code, language, input_data):
     result = None

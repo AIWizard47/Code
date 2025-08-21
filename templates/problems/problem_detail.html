@@ -464,9 +464,17 @@
                 </div>
 
             <div class="flex flex-col sm:flex-row gap-4 px-6 mb-4">
+                <button id="runButton" onclick="runCode()" class="flex-1 px-6 py-3 bg-green-500 text-white font-semibold rounded-lg shadow-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-2 transition-all duration-200 transform hover:scale-105 active:scale-95 flex items-center justify-center space-x-2">
+                    <svg id="runIcon" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M11.354 1.146a.5.5 0 00-.708 0L8 3.793 6.354 2.146a.5.5 0 10-.708.708L7.293 4.5 5.646 6.146a.5.5 0 10.708.708L8 5.207l1.646 1.647a.5.5 0 00.708-.708L8.707 4.5l1.647-1.646a.5.5 0 000-.708z"></path><path d="M10 5a5 5 0 015 5v2.5a.5.5 0 01-1 0V10a4 4 0 10-8 0v2.5a.5.5 0 01-1 0V10a5 5 0 015-5z"></path></svg>
+                    <svg id="loadingSpinnerRun" class="hidden animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>run</span>
+                </button>
                 <button id="submitButton" onclick="submitCode()" class="flex-1 px-6 py-3 bg-green-500 text-white font-semibold rounded-lg shadow-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-2 transition-all duration-200 transform hover:scale-105 active:scale-95 flex items-center justify-center space-x-2">
                     <svg id="submitIcon" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M11.354 1.146a.5.5 0 00-.708 0L8 3.793 6.354 2.146a.5.5 0 10-.708.708L7.293 4.5 5.646 6.146a.5.5 0 10.708.708L8 5.207l1.646 1.647a.5.5 0 00.708-.708L8.707 4.5l1.647-1.646a.5.5 0 000-.708z"></path><path d="M10 5a5 5 0 015 5v2.5a.5.5 0 01-1 0V10a4 4 0 10-8 0v2.5a.5.5 0 01-1 0V10a5 5 0 015-5z"></path></svg>
-                    <svg id="loadingSpinner" class="hidden animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <svg id="loadingSpinnerSubmit" class="hidden animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
@@ -801,7 +809,7 @@
             const errorResultElement = document.getElementById('errorResult');
             const submitButton = document.getElementById('submitButton');
             const submitIcon = document.getElementById('submitIcon');
-            const loadingSpinner = document.getElementById('loadingSpinner');
+            const loadingSpinner = document.getElementById('loadingSpinnerSubmit');
             const submitButtonText = submitButton.querySelector('span');
 
             // Construct storageKey for clearing draft
@@ -908,6 +916,152 @@
             } finally {
                 // Ensure the button is re-enabled and spinner is hidden, regardless of success or failure
                 submitButtonText.textContent = 'Submit Code';
+                loadingSpinner.classList.add('hidden');
+                submitIcon.classList.remove('hidden');
+                submitButton.disabled = false;
+                submitButton.classList.remove('opacity-75', 'cursor-not-allowed');
+            }
+        }
+        async function runCode() {
+            // Check if user is authenticated
+            if (!isUserAuthenticated) {
+                showCustomAlert("Login Required", "Please log in first to submit your code.");
+                return; // Stop the submission process
+            }
+
+            // Ensure results section is visible upon submission
+            const resultsContainer = document.getElementById('resultsContainer');
+            // The console area now only has one tab, so no tab switching logic needed for it.
+            // Ensure the test-result-content is visible.
+            document.getElementById('test-result-content').classList.remove('hidden');
+
+
+            if (!resultsVisible) {
+                resultsContainer.classList.add('visible');
+                resultsVisible = true;
+            }
+
+            // Get code from Monaco Editor
+            const code = editor ? editor.getValue() : "# Editor not initialized or empty.";
+            const language = document.getElementById("language").value; // Get selected language
+
+            // Assuming problem_id is passed dynamically (e.g., from Django template context)
+            const problemId = '{{ problem.id }}';
+            // The user_id is hardcoded here, but in a real application, it should be
+            // dynamically obtained from the authenticated user's session/context.
+            const userId = '1'; // Placeholder for user ID
+
+            const resultElement = document.getElementById('result');
+            const errorResultElement = document.getElementById('errorResult');
+            const submitButton = document.getElementById('runButton');
+            const submitIcon = document.getElementById('runIcon');
+            const loadingSpinner = document.getElementById('loadingSpinnerRun');
+            const submitButtonText = submitButton.querySelector('span');
+
+            // Construct storageKey for clearing draft
+            const problemIdForStorage = '{{ problem.id }}' || '1';
+            const contestIdForStorage = '{{ contest.id }}' || '1';
+            const selectedLanguageForStorage = document.getElementById('language').value;
+            const storageKey = `contest_${contestIdForStorage}_problem_${problemIdForStorage}_${selectedLanguageForStorage}`;
+
+
+            // 1. Clear previous result messages and reset styling
+            resultElement.textContent = '';
+            errorResultElement.textContent = '';
+            resultElement.classList.remove('text-green-700', 'text-red-700', 'text-yellow-700', 'bg-green-50', 'bg-red-50', 'bg-yellow-50');
+            resultElement.classList.add('bg-gray-100'); // Default background
+
+            // 2. Display a loading spinner and 'Submitting...' text
+            submitButtonText.textContent = 'running...';
+            submitIcon.classList.add('hidden');
+            loadingSpinner.classList.remove('hidden');
+
+            // 3. Disable the 'Submit' button
+            submitButton.disabled = true;
+            submitButton.classList.add('opacity-75', 'cursor-not-allowed');
+
+            try {
+                // Perform the fetch request to the backend
+                // Note: The X-CSRFToken is a placeholder for Django or similar frameworks.
+                // If not using such a framework, this header might need to be removed or adjusted.
+                const response = await fetch('/submissions/run/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        // 'X-CSRFToken': '{{ csrf_token }}' // Uncomment and ensure this token is dynamically generated by your backend
+                    },
+                    body: new URLSearchParams({
+                        'problem_id': problemId,
+                        'code': code,
+                        'language': language, // Send selected language
+                        'user_id': userId
+                    })
+                });
+
+                // Check if the response was successful
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                // Parse the JSON response
+                const data = await response.json();
+
+                // Clear saved draft after successful submission
+                localStorage.removeItem(storageKey);
+                console.log("Draft cleared from local storage after submission.");
+
+
+                // 4. Display the verdict, output, and detailed test case results
+                let resultOutput = `Verdict: ${data.verdict || 'Unknown'}\n\n`;
+                let verdictColorClass = '';
+
+                // Apply color and update verdict text based on the overall verdict
+                if (data.verdict === 'Accepted') {
+                    verdictColorClass = 'text-green-700';
+                    resultElement.classList.remove('bg-gray-100');
+                    resultElement.classList.add('bg-green-50');
+                } else if (data.verdict === 'Wrong Answer' || data.verdict === 'Time Limit Exceeded' || data.verdict === 'Memory Limit Exceeded' || data.verdict === 'Runtime Error') {
+                    verdictColorClass = 'text-red-700';
+                    resultElement.classList.remove('bg-gray-100');
+                    resultElement.classList.add('bg-red-50');
+                } else {
+                    verdictColorClass = 'text-yellow-700'; // E.g., for "Compiling", "Judging"
+                    resultElement.classList.remove('bg-gray-100');
+                    resultElement.classList.add('bg-yellow-50');
+                }
+                resultElement.classList.add(verdictColorClass);
+
+
+                // Display detailed test case results if available
+                if (data.test_results && Array.isArray(data.test_results)) {
+                    resultOutput += "Test Results:\n";
+                    data.test_results.forEach(tr => {
+                        resultOutput += `  Test Case ${tr.test_case}: ${tr.status}\n`;
+                        if (tr.status === "Failed") {
+                            resultOutput += `    Expected:\n${tr.expected}\n`;
+                            resultOutput += `    Actual:\n${tr.actual}\n\n`;
+                        }
+                    });
+                    resultOutput += "\n"; // Add extra newline for separation
+                } else if (data.output) {
+                    resultOutput += `Output:\n${data.output}\n`;
+                } else {
+                    resultOutput += "No standard output provided.\n";
+                }
+
+                resultElement.textContent = resultOutput;
+                errorResultElement.textContent = data.error || 'No error messages.';
+
+            } catch (error) {
+                // 5. Handle potential network errors or issues with the fetch operation
+                console.error('Error running code:', error);
+                showCustomAlert("Site Issue", `Failed to connect to the server or an internal error occurred: ${error.message}. Please check your network connection or try again later.`);
+                resultElement.textContent = 'Could not run code due to an error.';
+                resultElement.classList.remove('bg-gray-100', 'bg-green-50', 'bg-yellow-50');
+                resultElement.classList.add('text-red-700', 'bg-red-50');
+            } finally {
+                // Ensure the button is re-enabled and spinner is hidden, regardless of success or failure
+                submitButtonText.textContent = 'run';
                 loadingSpinner.classList.add('hidden');
                 submitIcon.classList.remove('hidden');
                 submitButton.disabled = false;
