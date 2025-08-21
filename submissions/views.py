@@ -35,7 +35,7 @@ def submit_code(request):
         try:
             for idx, test_case in enumerate(problem.test_cases.all()):
                                 # Call sandbox microservice
-                response = requests.post("http://127.0.0.1:8000/run/", json={
+                response = requests.post("https://sandbox-production-ed09.up.railway.app/run/", json={
                     "code": code,
                     "language": language,
                     "input": test_case.input_data
