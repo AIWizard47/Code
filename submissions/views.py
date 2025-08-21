@@ -12,9 +12,10 @@ from django_ratelimit.decorators import ratelimit
 import os
 from problems.models import Contest, ContestSubmission
 from django.utils import timezone
+import requests
 
 @csrf_exempt
-@ratelimit(key='ip', rate='1/s', block=True)
+@ratelimit(key='ip', rate='1/s', block=True,method=ratelimit.ALL)
 def submit_code(request):
     user = request.user
     if not user.is_authenticated:
@@ -33,8 +34,23 @@ def submit_code(request):
 
         try:
             for idx, test_case in enumerate(problem.test_cases.all()):
-                stdout, stderr = run_code(code, language, test_case.input_data)
+                                # Call sandbox microservice
+                response = requests.post("http://127.0.0.1:8000/run/", json={
+                    "code": code,
+                    "language": language,
+                    "input": test_case.input_data
+                }, timeout=10)
 
+                if response.status_code != 200:
+                    verdict = "Sandbox Error"
+                    error = response.text
+                    break
+
+                result = response.json()
+                stdout = result.get("output", "")
+                stderr = result.get("error", "")
+                # stdout, stderr = run_code(code, language, test_case.input_data)
+                # print(result)
                 def normalize_output(output):
                     lines = output.strip().replace('\r\n', '\n').split('\n')
                     return '\n'.join(line.rstrip() for line in lines)
