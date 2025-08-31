@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contests</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom scrollbar for better aesthetics */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #2d3748; /* Darker track for consistency with body */
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #6b7280; /* Tailwind gray-500 */
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #9ca3af; /* Tailwind gray-400 */
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-gray-900 to-gray-700 min-h-screen font-sans text-gray-100 flex flex-col p-4">
+
+    <!-- Header Navigation -->
+    <header class="w-full flex justify-center py-6 mb-8 px-4">
+        <nav class="space-x-8 text-lg font-medium">
+            <a href="/" class="text-gray-300 hover:text-white transition duration-200 ease-in-out px-4 py-2 rounded-lg">Problems</a>
+            <a href="/submissions/history/" class="text-gray-300 hover:text-white transition duration-200 ease-in-out px-4 py-2 rounded-lg">My Submissions</a>
+            <a href="/submissions/leaderboard/" class="text-gray-300 hover:text-white transition duration-200 ease-in-out px-4 py-2 rounded-lg">Leaderboard</a>
+            {% if user.is_authenticated %}
+                <a href="/accounts/logout/" class="text-gray-300 hover:text-white transition duration-200 ease-in-out px-4 py-2 rounded-lg">Logout</a>
+            {% else %}
+                <a href="/accounts/login/" class="text-gray-300 hover:text-white transition duration-200 ease-in-out px-4 py-2 rounded-lg">Login</a>
+            {% endif %}
+        </nav>
+    </header>
+
+    <div class="bg-white p-10 rounded-3xl shadow-2xl w-full mx-auto max-w-4xl flex-grow border border-gray-200 mb-8 text-gray-800">
+        <h2 class="text-5xl font-extrabold text-center text-gray-800 mb-10 drop-shadow-lg">Contests</h2>
+        
+        <div class="space-y-4">
+            {% for contest in contests %}
+                <div class="bg-gray-50 p-6 rounded-lg shadow-sm border border-gray-200 hover:bg-gray-100 transition duration-200 flex flex-col sm:flex-row justify-between items-start sm:items-center">
+                    <div class="flex-grow mb-2 sm:mb-0">
+                        <a href="{% url 'contest_detail' contest.id %}" class="text-indigo-700 hover:text-indigo-900 font-semibold text-xl block">
+                            {{ contest.name }}
+                        </a>
+                        <p class="text-sm text-gray-600 mt-1">
+                            <span class="font-medium">Start:</span> {{ contest.start_time }} 
+                            <span class="mx-1">|</span> 
+                            <span class="font-medium">End:</span> {{ contest.end_time }}
+                        </p>
+                    </div>
+                    <div class="flex-shrink-0">
+                        {% if contest.start_time > now %}
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-blue-100 text-blue-800">
+                                Upcoming
+                            </span>
+                        {% elif contest.end_time < now %}
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-red-100 text-red-800">
+                                Ended
+                            </span>
+                        {% else %}
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-green-100 text-green-800">
+                                Running
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    {% comment %}
+        Example Django context variables for local testing:
+        <script>
+            // Note: For local testing, 'now' should be a JavaScript Date object.
+            // In a real Django template, 'now' would be a Python datetime object.
+            const now = new Date(); // Current time for live testing
+
+            const contests = [
+                {
+                    id: 1,
+                    name: "Weekly Coding Challenge #1",
+                    start_time: "2025-07-01 10:00:00 UTC", // Example: replace with actual Django format
+                    end_time: "2025-07-01 12:00:00 UTC"   // Example: replace with actual Django format
+                },
+                {
+                    id: 2,
+                    name: "Monthly Algo Sprint",
+                    start_time: "2025-07-10 09:00:00 UTC",
+                    end_time: "2025-07-10 17:00:00 UTC"
+                },
+                {
+                    id: 3,
+                    name: "Beginner's Contest",
+                    start_time: "2025-06-20 14:00:00 UTC",
+                    end_time: "2025-06-20 16:00:00 UTC"
+                },
+                {
+                    id: 4,
+                    name: "Future Challenge",
+                    start_time: "2025-08-01 08:00:00 UTC",
+                    end_time: "2025-08-01 10:00:00 UTC"
+                }
+            ];
+
+            // This script block is for demonstrating the HTML structure locally.
+            // In a real application, these variables would be populated by your backend context.
+
+            // To simulate Django context for local testing, you would manually set these.
+            // The `{% if %}` blocks are Django template logic, so for pure HTML testing,
+            // you'd manually render the appropriate status or use JavaScript to dynamically
+            // determine and display the status based on the 'now' variable.
+
+            // Example of how to simulate `contests` for local testing
+            // document.addEventListener('DOMContentLoaded', () => {
+            //     const contestsContainer = document.querySelector('.space-y-4');
+            //     if (contestsContainer) {
+            //         contestsContainer.innerHTML = ''; // Clear existing
+            //         contests.forEach(contest => {
+            //             const contestStartTime = new Date(contest.start_time).getTime();
+            //             const contestEndTime = new Date(contest.end_time).getTime();
+            //             const currentTime = new Date().getTime();
+            //
+            //             let statusText = '';
+            //             let statusClass = '';
+            //             if (currentTime < contestStartTime) {
+            //                 statusText = 'Upcoming';
+            //                 statusClass = 'bg-blue-100 text-blue-800';
+            //             } else if (currentTime > contestEndTime) {
+            //                 statusText = 'Ended';
+            //                 statusClass = 'bg-red-100 text-red-800';
+            //             } else {
+            //                 statusText = 'Running';
+            //                 statusClass = 'bg-green-100 text-green-800';
+            //             }
+            //
+            //             const div = document.createElement('div');
+            //             div.className = 'bg-gray-50 p-6 rounded-lg shadow-sm border border-gray-200 hover:bg-gray-100 transition duration-200 flex flex-col sm:flex-row justify-between items-start sm:items-center';
+            //             div.innerHTML = `
+            //                 <div class="flex-grow mb-2 sm:mb-0">
+            //                     <a href="/contests/${contest.id}/" class="text-indigo-700 hover:text-indigo-900 font-semibold text-xl block">
+            //                         ${contest.name}
+            //                     </a>
+            //                     <p class="text-sm text-gray-600 mt-1">
+            //                         <span class="font-medium">Start:</span> ${contest.start_time}
+            //                         <span class="mx-1">|</span>
+            //                         <span class="font-medium">End:</span> ${contest.end_time}
+            //                     </p>
+            //                 </div>
+            //                 <div class="flex-shrink-0">
+            //                     <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold ${statusClass}">
+            //                         ${statusText}
+            //                     </span>
+            //                 </div>
+            //             `;
+            //             contestsContainer.appendChild(div);
+            //         });
+            //     }
+            // });
+        </script>
+    {% endcomment %}
+</body>
+</html>

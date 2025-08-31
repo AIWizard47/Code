@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Problem Solver IDE</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Ensure body and html take full height and width */
+        html, body {
+            height: 100%;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden; /* Hide scrollbars for the main body */
+            font-family: 'Inter', sans-serif; /* Use Inter font */
+        }
+
+        /* Custom scrollbar for all scrollable elements */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #2d3748; /* Darker track for consistency with body */
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #6b7280; /* Tailwind gray-500 */
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #9ca3af; /* Tailwind gray-400 */
+        }
+
+        /* Main container styling */
+        .main-container {
+            display: flex;
+            height: calc(100vh - 4rem); /* Full viewport height minus top nav height */
+            width: 100vw; /* Full viewport width */
+            overflow: hidden; /* Ensure no scrollbars on the main container itself */
+            background-color: #1a202c; /* Dark background similar to image */
+            padding: 0.5rem; /* Small padding around the entire IDE */
+            box-sizing: border-box; /* Include padding in width/height */
+        }
+
+        /* Left Panel (Problem Description) */
+        .left-panel {
+            flex: 1; /* Initial flex-grow */
+            flex-basis: 50%; /* Initial width */
+            background-color: #2d3748; /* Darker background for left panel */
+            color: #e2e8f0; /* Light text color */
+            padding: 1.5rem;
+            overflow-y: auto; /* Enable vertical scrolling */
+            display: flex;
+            flex-direction: column;
+            border-radius: 0.75rem; /* rounded-xl */
+        }
+
+        /* Right Panel (Code Editor, Console) */
+        .right-panel {
+            flex: 1; /* Initial flex-grow */
+            flex-basis: 50%; /* Initial width */
+            background-color: #1a202c; /* Dark background for right panel */
+            color: #e2e8f0; /* Light text color */
+            display: flex;
+            flex-direction: column;
+            overflow: hidden; /* Managed by inner components */
+            border-radius: 0.75rem; /* rounded-xl */
+        }
+
+        /* Top bar for right panel */
+        .right-panel-top-bar {
+            background-color: #2d3748; /* Darker background */
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #4a5568;
+            flex-shrink: 0; /* Prevent shrinking */
+        }
+
+        /* Monaco Editor Container */
+        #editor { /* Changed ID to 'editor' */
+            flex-grow: 1; /* Takes available space */
+            min-height: 200px; /* Minimum height for editor */
+            overflow: hidden;
+            margin: 0.5rem 1.5rem; /* Padding similar to the image */
+            border-radius: 0.5rem; /* Rounded corners */
+            border: 1px solid #4a5568; /* Border for editor */
+        }
+
+        /* Console/Testcase Area */
+        .console-area {
+            background-color: #2d3748; /* Darker background */
+            padding: 1.5rem;
+            border-top: 1px solid #4a5568;
+            flex-shrink: 0; /* Prevent shrinking below its content/set height */
+            display: flex;
+            flex-direction: column;
+            height: 250px; /* Initial height for console area */
+            min-height: 100px; /* Minimum height */
+            overflow-y: auto; /* Enable scrolling for console content */
+        }
+
+        /* Tab styling */
+        .tab-button {
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            color: #a0aec0; /* gray-400 */
+            transition: all 0.2s ease-in-out;
+        }
+        .tab-button.active {
+            background-color: #4a5568; /* gray-700 */
+            color: #e2e8f0; /* Light text */
+        }
+        .tab-button:hover:not(.active) {
+            background-color: #4a5568; /* gray-700 */
+            color: #e2e8f0;
+        }
+
+        /* Problem description content */
+        .problem-content h2 {
+            font-size: 2.25rem; /* text-4xl */
+            font-weight: 800; /* font-extrabold */
+            color: #667eea; /* indigo-500 */
+            margin-bottom: 1rem;
+        }
+        .problem-content p {
+            font-size: 1rem; /* text-base */
+            color: #cbd5e1; /* gray-300 */
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+        .problem-content h3 {
+            font-size: 1.5rem; /* text-xl */
+            font-weight: 700; /* font-bold */
+            color: #a0aec0; /* gray-400 */
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+        .problem-content pre {
+            background-color: #1a202c; /* Dark background for code blocks */
+            border: 1px solid #4a5568; /* Darker border */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            line-height: 1.4;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+            color: #e2e8f0; /* Light text for code */
+        }
+
+        /* Custom Alert Modal Styles (retained and adjusted for dark theme) */
+        .custom-alert-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8); /* Darker overlay */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+        }
+        .custom-alert-overlay.open {
+            opacity: 1;
+            visibility: visible;
+        }
+        .custom-alert-content {
+            background-color: #2d3748; /* Dark background */
+            color: #e2e8f0; /* Light text */
+            padding: 2.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+            width: 90%;
+            max-width: 450px;
+            text-align: center;
+            transform: translateY(20px);
+            opacity: 0;
+            transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+        }
+        .custom-alert-overlay.open .custom-alert-content {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        .custom-alert-content h4 {
+            font-weight: bold;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #667eea; /* indigo-500 */
+        }
+        .custom-alert-content p {
+            color: #cbd5e1; /* gray-300 */
+            margin-bottom: 1.5rem;
+        }
+        .custom-alert-content button {
+            background-color: #667eea; /* indigo-500 */
+            color: white;
+            padding: 0.75rem 1.75rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: background-color 0.2s ease-in-out;
+        }
+        .custom-alert-content button:hover {
+            background-color: #5a67d8; /* indigo-600 */
+        }
+
+        /* Submission button styling */
+        #submitButton {
+            background-color: #48bb78; /* Green-500 */
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        #submitButton:hover {
+            background-color: #38a169; /* Green-600 */
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+        }
+        #submitButton:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        #submitButton.disabled {
+            background-color: #a0aec0; /* gray-400 */
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        /* Language selector styling */
+        .language-select {
+            background-color: #4a5568; /* gray-700 */
+            border: 1px solid #6b7280; /* gray-500 */
+            color: #e2e8f0; /* Light text */
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            appearance: none; /* Remove default arrow */
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%23e2e8f0'%3e%3cpath d='M7 7l3-3 3 3m0 6l-3 3-3-3' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 1em;
+            cursor: pointer;
+        }
+
+        /* Result/Error Pre tags */
+        #result, #errorResult {
+            background-color: #2d3748; /* Darker background */
+            border: 1px solid #4a5568; /* Darker border */
+            color: #e2e8f0; /* Light text */
+        }
+        #result.text-green-700 { color: #68d391; background-color: #2d3748; border-color: #68d391; } /* Green-300 */
+        #result.text-red-700 { color: #fc8181; background-color: #2d3748; border-color: #fc8181; } /* Red-300 */
+        #result.text-yellow-700 { color: #f6e05e; background-color: #2d3748; border-color: #f6e05e; } /* Yellow-300 */
+        #errorResult.text-red-800 { color: #fc8181; background-color: #2d3748; border-color: #fc8181; } /* Red-300 */
+
+        /* Resizer styles */
+        .resize-handle-x {
+            width: 8px;
+            cursor: ew-resize;
+            background-color: #4a5568; /* gray-700 */
+            flex-shrink: 0;
+            transition: background-color 0.2s ease-in-out;
+        }
+        .resize-handle-x:hover {
+            background-color: #667eea; /* indigo-500 */
+        }
+        .resize-handle-y {
+            height: 8px;
+            cursor: ns-resize;
+            background-color: #4a5568; /* gray-700 */
+            flex-shrink: 0;
+            transition: background-color 0.2s ease-in-out;
+        }
+        .resize-handle-y:hover {
+            background-color: #667eea; /* indigo-500 */
+        }
+
+        /* Submission card styling */
+        .submission-card {
+            background-color: #2d3748; /* Darker background */
+            border: 1px solid #4a5568; /* Darker border */
+            border-radius: 0.75rem; /* rounded-xl */
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .submission-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
+            background-color: #3a475a; /* Slightly lighter on hover */
+        }
+        .submission-card strong {
+            color: #667eea; /* Indigo-500 for labels */
+        }
+        .submission-card .verdict-accepted {
+            color: #68d391; /* Green-300 */
+        }
+        .submission-card .verdict-wrong {
+            color: #fc8181; /* Red-300 */
+        }
+        .submission-card .verdict-other {
+            color: #f6e05e; /* Yellow-300 */
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-black-900 to-black-700 text-black-100 flex flex-col">
+
+    <div class="w-full flex justify-end p-4 z-10 bg-gray-800 text-gray-100">
+        <div class="space-x-4">
+            <a href="/" class="text-indigo-400 hover:text-indigo-200 font-semibold transition duration-200">Problems</a>
+            {% if user.is_authenticated %}
+                <a href="/submissions/history/" class="text-indigo-400 hover:text-indigo-200 font-semibold transition duration-200">My Submissions</a>
+                <a href="/problems/logout/" class="text-indigo-400 hover:text-indigo-200 font-semibold transition duration-200">Logout</a>
+            {% else %}
+            <a href="/accounts/login/" class="text-indigo-400 hover:text-indigo-200 font-semibold transition duration-200">Login</a>
+            <a href="/account/registrations/" class="text-indigo-400 hover:text-indigo-200 font-semibold transition duration-200">SignUp</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div id="leftPanel" class="left-panel">
+            <div class="flex space-x-2 border-b border-gray-600 pb-2 mb-4 flex-shrink-0">
+                <button class="tab-button active" data-tab="description">Description</button>
+                <button class="tab-button" data-tab="editorial">Editorial</button>
+                <button class="tab-button" data-tab="solutions">Solutions</button>
+                <button class="tab-button" data-tab="submissions">Submissions</button>
+            </div>
+
+            <div id="description-content" class="tab-content problem-content">
+                <h2 class="text-3xl font-extrabold text-indigo-400 mb-4">Problem: <span class="text-gray-100">{{ problem.title }}</span></h2>
+                <p class="text-lg text-gray-300 mb-4">
+                    <strong>Difficulty:</strong> 
+                    <span class="font-semibold
+                        {% if problem.difficulty == 'Easy' %}text-green-400
+                        {% elif problem.difficulty == 'Medium' %}text-yellow-400
+                        {% elif problem.difficulty == 'Hard' %}text-red-400
+                        {% else %}text-gray-400
+                        {% endif %}">
+                        {{ problem.difficulty }}
+                    </span>
+                </p>
+                
+                <p class="text-lg text-gray-300 mb-4 leading-relaxed">{{ problem.description|linebreaks }}</p>
+
+                <div class="mb-4">
+                    <h3 class="text-xl font-bold text-gray-400 mb-2">Input:</h3>
+                    <p class="text-gray-300 leading-relaxed">{{ problem.input_description }}</p>
+                </div>
+                <div class="mb-4">
+                    <h3 class="text-xl font-bold text-gray-400 mb-2">Output:</h3>
+                    <p class="text-gray-300 leading-relaxed">{{ problem.output_description }}</p>
+                </div>
+                <div class="mb-6">
+                    <h3 class="text-xl font-bold text-gray-400 mb-2">Constraints:</h3>
+                    <p class="text-gray-300 leading-relaxed">{{ problem.constraints }}</p>
+                </div>
+
+                <div class="bg-gray-700 p-6 rounded-lg border border-gray-600 mb-4 shadow-sm">
+                    <h3 class="text-xl font-bold text-gray-400 mb-3">Sample Input</h3>
+                    <pre class="bg-gray-800 p-4 rounded-md border border-gray-600 text-sm font-mono text-gray-100 overflow-auto">{{ problem.sample_input }}</pre>
+                </div>
+                <div class="bg-gray-700 p-6 rounded-lg border border-gray-600 mb-4 shadow-sm">
+                    <h3 class="text-xl font-bold text-gray-400 mb-3">Sample Output</h3>
+                    <pre class="bg-gray-800 p-4 rounded-md border border-gray-600 text-sm font-mono text-gray-100 overflow-auto">{{ problem.sample_output }}</pre>
+                </div>
+            </div>
+            
+            <div id="editorial-content" class="tab-content hidden problem-content">
+                <h2 class="text-3xl font-extrabold text-indigo-400 mb-4">Editorial</h2>
+                <p class="text-lg text-gray-300">Editorial content will appear here.</p>
+            </div>
+            <div id="solutions-content" class="tab-content hidden problem-content">
+                <h2 class="text-3xl font-extrabold text-indigo-400 mb-4">Solutions</h2>
+                <p class="text-lg text-gray-300">Community solutions will appear here.</p>
+            </div>
+            <div id="submissions-content" class="tab-content hidden problem-content">
+                <h2 class="text-3xl font-extrabold text-indigo-400 mb-4">Your Submission History</h2>
+                <div class="grid grid-cols-1 gap-3">
+                    {% for sub in submission_history %}
+                    <div class="submission-card">
+                        <p class="text-sm text-gray-400 mb-1"><strong>Submission #{{ forloop.counter0|add:submission_history.start_index }}</strong></p>
+                        <p class="text-base text-gray-200"><strong>Time:</strong> {{ sub.created_at|date:"Y-m-d H:i" }}</p>
+                        <p class="text-base text-gray-200"><strong>Language:</strong> {{ sub.language|title }}</p>
+                        <p class="text-base">
+                            <strong>Verdict:</strong> 
+                            <span class="
+                                {% if sub.verdict == 'Accepted' %}verdict-accepted
+                                {% elif sub.verdict in 'Wrong Answer Time Limit Exceeded Memory Limit Exceeded Runtime Error' %}verdict-wrong
+                                {% else %}verdict-other
+                                {% endif %}
+                            ">{{ sub.verdict }}</span>
+                        </p>
+                        <p class="text-base text-gray-200"><strong>Runtime:</strong> {{ sub.runtime|default:"-" }} ms</p>
+                    </div>
+                    {% empty %}
+                    <p class="text-lg text-gray-300">No submissions yet.</p>
+                    {% endfor %}
+                </div>
+
+                <!-- ✅ Pagination controls -->
+                {% if submission_history.has_other_pages %}
+                <div class="flex justify-center mt-4 space-x-2">
+                    {% if submission_history.has_previous %}
+                    <a href="?page={{ submission_history.previous_page_number }}" class="px-3 py-1 bg-gray-700 text-gray-300 rounded hover:bg-gray-600">Previous</a>
+                    {% endif %}
+
+                    <span class="px-3 py-1 bg-indigo-600 text-white rounded">
+                        Page {{ submission_history.number }} of {{ submission_history.paginator.num_pages }}
+                    </span>
+
+                    {% if submission_history.has_next %}
+                    <a href="?page={{ submission_history.next_page_number }}" class="px-3 py-1 bg-gray-700 text-gray-300 rounded hover:bg-gray-600">Next</a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+
+
+            <div class="mt-auto pt-4 border-t border-gray-600 flex justify-around items-center flex-shrink-0">
+                <button class="text-gray-400 hover:text-indigo-400 transition-colors duration-200 flex items-center space-x-1">
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd"></path></svg>
+                    <span>Upvote</span>
+                </button>
+                <button class="text-gray-400 hover:text-indigo-400 transition-colors duration-200 flex items-center space-x-1">
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 2a8 8 0 100 16 8 8 0 000-16zm1 11a1 1 0 10-2 0v-2H7a1 1 0 100-2h2V7a1 1 0 102 0v2h2a1 1 0 100 2h-2v2z" clip-rule="evenodd"></path></svg>
+                    <span>Downvote</span>
+                </button>
+                <button class="text-gray-400 hover:text-indigo-400 transition-colors duration-200 flex items-center space-x-1">
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.538 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.783.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.92 8.722c-.783-.57-.381-1.81.588-1.81h3.462a1 1 0 00.95-.69l1.07-3.292z"></path></svg>
+                    <span>Star</span>
+                </button>
+            </div>
+        </div>
+
+        <div id="horizontalResizer" class="resize-handle-x"></div>
+
+        <div id="rightPanel" class="right-panel">
+            <div class="right-panel-top-bar">
+                <div class="flex items-center space-x-4">
+                    <h3 class="text-lg font-semibold text-gray-100">Code</h3>
+                    <form id="language-form" class="inline-block">
+                        <select id="language" name="language" onchange="changeEditorLanguage(this.value)"
+                                class="language-select">
+                            <option value="python" {% if selected_language == "python" %}selected{% endif %}>Python3</option>
+                            <option value="cpp" {% if selected_language == "cpp" %}selected{% endif %}>C++</option>
+                            <option value="java" {% if selected_language == "java" %}selected{% endif %}>Java</option>
+                        </select>
+                    </form>
+                    <span class="text-gray-400 text-sm">Auto</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button class="text-gray-400 hover:text-indigo-400 transition-colors duration-200">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z"></path><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"></path></svg>
+                    </button>
+                    <button class="text-gray-400 hover:text-indigo-400 transition-colors duration-200">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd"></path></svg>
+                    </button>
+                    <button class="text-gray-400 hover:text-indigo-400 transition-colors duration-200">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586l-1.293-1.293z" clip-rule="evenodd"></path></svg>
+                    </button>
+                    <button class="text-gray-400 hover:text-indigo-400 transition-colors duration-200">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8.168v3.664a1 1 0 001.555.832l3.25-1.832a1 1 0 000-1.664l-3.25-1.832z" clip-rule="evenodd"></path></svg>
+                    </button>
+                </div>
+            </div>
+
+            <div id="editor" class="mb-4">
+                </div>
+
+            <div class="flex flex-col sm:flex-row gap-4 px-6 mb-4">
+                <button id="runButton" onclick="runCode()" class="flex-1 px-6 py-3 bg-green-500 text-white font-semibold rounded-lg shadow-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-2 transition-all duration-200 transform hover:scale-105 active:scale-95 flex items-center justify-center space-x-2">
+                    <svg id="runIcon" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M11.354 1.146a.5.5 0 00-.708 0L8 3.793 6.354 2.146a.5.5 0 10-.708.708L7.293 4.5 5.646 6.146a.5.5 0 10.708.708L8 5.207l1.646 1.647a.5.5 0 00.708-.708L8.707 4.5l1.647-1.646a.5.5 0 000-.708z"></path><path d="M10 5a5 5 0 015 5v2.5a.5.5 0 01-1 0V10a4 4 0 10-8 0v2.5a.5.5 0 01-1 0V10a5 5 0 015-5z"></path></svg>
+                    <svg id="loadingSpinnerRun" class="hidden animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>run</span>
+                </button>
+                <button id="submitButton" onclick="submitCode()" class="flex-1 px-6 py-3 bg-green-500 text-white font-semibold rounded-lg shadow-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-2 transition-all duration-200 transform hover:scale-105 active:scale-95 flex items-center justify-center space-x-2">
+                    <svg id="submitIcon" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M11.354 1.146a.5.5 0 00-.708 0L8 3.793 6.354 2.146a.5.5 0 10-.708.708L7.293 4.5 5.646 6.146a.5.5 0 10.708.708L8 5.207l1.646 1.647a.5.5 0 00.708-.708L8.707 4.5l1.647-1.646a.5.5 0 000-.708z"></path><path d="M10 5a5 5 0 015 5v2.5a.5.5 0 01-1 0V10a4 4 0 10-8 0v2.5a.5.5 0 01-1 0V10a5 5 0 015-5z"></path></svg>
+                    <svg id="loadingSpinnerSubmit" class="hidden animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Submit Code</span>
+                </button>
+            </div>
+
+            <div id="verticalResizer" class="resize-handle-y"></div>
+
+            <div id="consoleArea" class="console-area">
+                <div class="flex space-x-2 border-b border-gray-600 pb-2 mb-4">
+                    <!-- Only Test Result tab remains -->
+                    <button class="tab-button active" data-tab="test-result">Test Result</button>
+                </div>
+
+                <!-- Test Result content is always visible as it's the only tab -->
+                <div id="test-result-content" class="tab-content">
+                    <h3 class="text-xl font-bold text-gray-400 mb-2">Execution Results:</h3>
+                    <div id="resultsContainer" class="results-container">
+                        <h3 class="text-xl font-bold text-gray-400 mt-6 mb-3">Verdict:</h3>
+                        <pre id="result" class="p-4 rounded-lg border text-sm font-mono overflow-auto max-h-48 min-h-[5rem] shadow-sm"></pre>
+
+                        <h3 class="text-xl font-bold text-red-400 mt-4 mb-3">Error Output:</h3>
+                        <pre id="errorResult" class="p-4 rounded-lg border text-sm font-mono overflow-auto max-h-48 min-h-[5rem] shadow-sm"></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="customAlertOverlay" class="custom-alert-overlay">
+        <div class="custom-alert-content">
+            <h4 id="customAlertTitle"></h4>
+            <p id="customAlertMessage"></p>
+            <button onclick="hideCustomAlert()">OK</button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
+    <script>
+        let editor; // Global variable to hold the Monaco Editor instance
+        let resultsVisible = true; // Track visibility of results container, now always true as it's the only section
+
+        // Simulate user authentication status (replace with actual backend check)
+        const isUserAuthenticated = {% if user.is_authenticated %}true{% else %}false{% endif %};
+
+        // Custom Alert Functions (retained for general alerts, not contest security)
+        function showCustomAlert(title, message) {
+            document.getElementById('customAlertTitle').textContent = title;
+            document.getElementById('customAlertMessage').textContent = message;
+            document.getElementById('customAlertOverlay').classList.add('open');
+        }
+
+        function hideCustomAlert() {
+            document.getElementById('customAlertOverlay').classList.remove('open');
+        }
+
+        // Configure Monaco Editor loader
+        require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs' } });
+
+        // Default code for each language
+        const defaultCode = {
+            python: `class Solution:
+    def possibleStringCount(self, word: str) -> int:
+        #sam
+        count = 0
+        curr = word[0]
+        for i in range(1,len(word)):
+            if curr==word[i]:
+                count+=1
+            else:
+                curr = word[i]
+
+        return count+1`,
+            cpp: "// Write your C++ solution here\n#include <iostream>\n\nint main() {\n    std::cout << \"Hello from C++!\" << std::endl;\n    return 0;\n}",
+            java: "// Write your Java solution here\npublic class Main {\n    public static void main(String[] args) {\n        System.out.println(\"Hello from Java!\");\n    }\n}"
+        };
+
+        // Initialize Monaco Editor when the window loads
+        window.onload = function() {
+            const mainContainer = document.querySelector('.main-container'); // Get main container reference
+
+            require(['vs/editor/editor.main'], function() {
+                // Get the initially selected language from the dropdown
+                const initialLanguage = document.getElementById('language').value;
+
+                editor = monaco.editor.create(document.getElementById('editor'), {
+                    value: defaultCode[initialLanguage] || "# Write your solution here", // Set initial value based on selected language
+                    language: initialLanguage, // Initial language
+                    theme: 'vs-dark', // Dark theme for a cool IDE look
+                    automaticLayout: true // Ensures editor resizes with window/container changes
+                });
+                
+                // Expose editor globally for auto-save script
+                window.editor = editor;
+
+                // Load last submission code if exists (from backend, if any)
+                const lastSubmissionCode = `{% if last_submission %}{{ last_submission.code|escapejs }}{% endif %}`;
+                if (lastSubmissionCode && lastSubmissionCode.trim() !== "") {
+                    editor.setValue(lastSubmissionCode);
+                }
+
+                // Auto-save functionality
+                // Construct storageKey dynamically. Replace `contest.id` and `problem.id` with actual values from your backend context.
+                // For demonstration, I'm using placeholders '1' and '1'. In a real Django template, they would be `{{ contest.id }}` and `{{ problem.id }}`.
+                const problemIdForStorage = '{{ problem.id }}' || '1'; // Placeholder if not available
+                const contestIdForStorage = '{{ contest.id }}' || '1'; // Placeholder if not available
+                const selectedLanguageForStorage = document.getElementById('language').value;
+
+                const storageKey = `contest_${contestIdForStorage}_problem_${problemIdForStorage}_${selectedLanguageForStorage}`;
+                console.log("Storage Key for Draft:", storageKey); // For debugging
+
+                // Load saved draft if exists in local storage
+                const savedDraftCode = localStorage.getItem(storageKey);
+                if (savedDraftCode) {
+                    editor.setValue(savedDraftCode);
+                    console.log("Loaded saved draft from local storage.");
+                }
+
+                // Auto-save every 10 seconds
+                setInterval(() => {
+                    const currentCode = editor.getValue();
+                    localStorage.setItem(storageKey, currentCode);
+                    console.log("Draft auto-saved.");
+                }, 10000); // 10 seconds
+
+            });
+
+            // Tab switching logic for left and right panels
+            document.querySelectorAll('.left-panel .tab-button').forEach(button => {
+                button.addEventListener('click', () => {
+                    document.querySelectorAll('.left-panel .tab-button').forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    document.querySelectorAll('.left-panel .tab-content').forEach(content => content.classList.add('hidden'));
+                    document.getElementById(button.dataset.tab + '-content').classList.remove('hidden');
+                });
+            });
+
+            // The console area now only has one tab, so no tab switching logic needed for it.
+            // Ensure the test-result-content is visible by default.
+            document.getElementById('test-result-content').classList.remove('hidden');
+
+
+            // Resizing Logic
+            const leftPanel = document.getElementById('leftPanel');
+            const rightPanel = document.getElementById('rightPanel');
+            const horizontalResizer = document.getElementById('horizontalResizer');
+
+            const editorContainer = document.getElementById('editor'); // Changed to 'editor'
+            const consoleArea = document.getElementById('consoleArea');
+            const verticalResizer = document.getElementById('verticalResizer');
+
+            let isResizingHorizontal = false;
+            let isResizingVertical = false;
+
+            // Horizontal Resizer (between left and right panels)
+            horizontalResizer.addEventListener('mousedown', (e) => {
+                isResizingHorizontal = true;
+                document.body.style.cursor = 'ew-resize';
+                leftPanel.style.userSelect = 'none';
+                rightPanel.style.userSelect = 'none';
+                leftPanel.style.pointerEvents = 'none';
+                rightPanel.style.pointerEvents = 'none';
+
+                // Set flex-grow/shrink to 0 during resize for direct width control
+                leftPanel.style.flexGrow = '0';
+                leftPanel.style.flexShrink = '0';
+                rightPanel.style.flexGrow = '0';
+                rightPanel.style.flexShrink = '0';
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (!isResizingHorizontal) return;
+
+                const mainContainerRect = mainContainer.getBoundingClientRect();
+                let newLeftWidth = e.clientX - mainContainerRect.left;
+                const totalWidth = mainContainerRect.width;
+                
+                // Calculate percentage widths
+                let leftPercentage = (newLeftWidth / totalWidth) * 100;
+
+                // Apply min/max width constraints (e.g., 20% to 80%)
+                leftPercentage = Math.max(20, Math.min(80, leftPercentage));
+                
+                leftPanel.style.width = `${leftPercentage}%`;
+                rightPanel.style.width = `${100 - leftPercentage}%`;
+                
+                if (editor) {
+                    editor.layout(); // Trigger Monaco layout update
+                }
+            });
+
+            document.addEventListener('mouseup', () => {
+                isResizingHorizontal = false;
+                document.body.style.cursor = 'default';
+                leftPanel.style.userSelect = '';
+                rightPanel.style.userSelect = '';
+                leftPanel.style.pointerEvents = '';
+                rightPanel.style.pointerEvents = '';
+            });
+
+            // Vertical Resizer (between editor and console area)
+            verticalResizer.addEventListener('mousedown', (e) => {
+                isResizingVertical = true;
+                document.body.style.cursor = 'ns-resize';
+                editorContainer.style.userSelect = 'none';
+                consoleArea.style.userSelect = 'none';
+                editorContainer.style.pointerEvents = 'none';
+                consoleArea.style.pointerEvents = 'none';
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (!isResizingVertical) return;
+
+                const rightPanelRect = rightPanel.getBoundingClientRect();
+                // Calculate new console height from bottom of right panel
+                let newConsoleHeight = rightPanelRect.bottom - e.clientY;
+                
+                // Apply min/max height constraints for console (e.g., 100px to 70% of rightPanel height)
+                const minConsoleHeight = 100; // Minimum pixel height for console
+                const maxConsoleHeight = rightPanelRect.height * 0.7; // Max 70% of right panel height
+
+                newConsoleHeight = Math.max(minConsoleHeight, Math.min(maxConsoleHeight, newConsoleHeight));
+
+                consoleArea.style.height = `${newConsoleHeight}px`;
+                
+                if (editor) {
+                    editor.layout(); // Trigger Monaco layout update
+                }
+            });
+
+            document.addEventListener('mouseup', () => {
+                isResizingVertical = false;
+                document.body.style.cursor = 'default';
+                editorContainer.style.userSelect = '';
+                consoleArea.style.userSelect = '';
+                editorContainer.style.pointerEvents = '';
+                consoleArea.style.pointerEvents = '';
+            });
+
+            // Ensure Monaco editor layout adjusts on window resize
+            window.addEventListener('resize', () => {
+                if (editor) {
+                    editor.layout();
+                }
+            });
+        };
+
+        /**
+         * Changes the language mode of the Monaco Editor.
+         * @param {string} newLanguage The new language mode (e.g., 'python', 'cpp', 'java').
+         */
+        function changeEditorLanguage(newLanguage) {
+            if (editor) {
+                // Set the model's language
+                monaco.editor.setModelLanguage(editor.getModel(), newLanguage);
+
+                // Update the editor's value with the default code for the selected language,
+                // but only if the current content is still the default placeholder.
+                const currentValue = editor.getValue().trim();
+                const currentLanguage = editor.getModel().getLanguageId(); // This will be the OLD language before the change
+
+                // Check if the current content is essentially the default for its OLD language
+                // or if it's the generic placeholder.
+                // This prevents overwriting user's custom code when they switch languages.
+                if (currentValue === (defaultCode[currentLanguage] || "").trim() || currentValue === "# Write your solution here") {
+                    editor.setValue(defaultCode[newLanguage] || "# Write your solution here");
+                }
+
+                // Update the storageKey for auto-save if language changes
+                const problemIdForStorage = '{{ problem.id }}' || '1';
+                const contestIdForStorage = '{{ contest.id }}' || '1';
+                const newStorageKey = `contest_${contestIdForStorage}_problem_${problemIdForStorage}_${newLanguage}`;
+                
+                // Load saved draft for the new language if it exists
+                const savedDraftCode = localStorage.getItem(newStorageKey);
+                if (savedDraftCode) {
+                    editor.setValue(savedDraftCode);
+                    console.log(`Loaded saved draft for ${newLanguage}.`);
+                } else {
+                    // If no draft for the new language, load its default code
+                    editor.setValue(defaultCode[newLanguage] || "# Write your solution here");
+                    console.log(`No draft for ${newLanguage}, loaded default code.`);
+                }
+            }
+        }
+
+        /**
+         * The submitCode function sends the user's solution code to a backend server
+         * for judging and displays the verdict, output, and detailed test case results.
+         *
+         * It enhances the user experience by:
+         * 1. Clearing previous result messages.
+         * 2. Displaying a loading spinner and 'Submitting...' text.
+         * 3. Disabling the 'Submit' button during submission to prevent multiple requests.
+         * 4. Re-enabling the button and hiding the spinner once the response is received.
+         * 5. Ensuring the results section is visible after submission.
+         * 6. Handling potential network errors.
+         *
+         * @returns {void}
+         */
+        async function submitCode() {
+            // Check if user is authenticated
+            if (!isUserAuthenticated) {
+                showCustomAlert("Login Required", "Please log in first to submit your code.");
+                return; // Stop the submission process
+            }
+
+            // Ensure results section is visible upon submission
+            const resultsContainer = document.getElementById('resultsContainer');
+            // The console area now only has one tab, so no tab switching logic needed for it.
+            // Ensure the test-result-content is visible.
+            document.getElementById('test-result-content').classList.remove('hidden');
+
+
+            if (!resultsVisible) {
+                resultsContainer.classList.add('visible');
+                resultsVisible = true;
+            }
+
+            // Get code from Monaco Editor
+            const code = editor ? editor.getValue() : "# Editor not initialized or empty.";
+            const language = document.getElementById("language").value; // Get selected language
+
+            // Assuming problem_id is passed dynamically (e.g., from Django template context)
+            const problemId = '{{ problem.id }}';
+            // The user_id is hardcoded here, but in a real application, it should be
+            // dynamically obtained from the authenticated user's session/context.
+            const userId = '1'; // Placeholder for user ID
+
+            const resultElement = document.getElementById('result');
+            const errorResultElement = document.getElementById('errorResult');
+            const submitButton = document.getElementById('submitButton');
+            const submitIcon = document.getElementById('submitIcon');
+            const loadingSpinner = document.getElementById('loadingSpinnerSubmit');
+            const submitButtonText = submitButton.querySelector('span');
+
+            // Construct storageKey for clearing draft
+            const problemIdForStorage = '{{ problem.id }}' || '1';
+            const contestIdForStorage = '{{ contest.id }}' || '1';
+            const selectedLanguageForStorage = document.getElementById('language').value;
+            const storageKey = `contest_${contestIdForStorage}_problem_${problemIdForStorage}_${selectedLanguageForStorage}`;
+
+
+            // 1. Clear previous result messages and reset styling
+            resultElement.textContent = '';
+            errorResultElement.textContent = '';
+            resultElement.classList.remove('text-green-700', 'text-red-700', 'text-yellow-700', 'bg-green-50', 'bg-red-50', 'bg-yellow-50');
+            resultElement.classList.add('bg-gray-100'); // Default background
+
+            // 2. Display a loading spinner and 'Submitting...' text
+            submitButtonText.textContent = 'Submitting...';
+            submitIcon.classList.add('hidden');
+            loadingSpinner.classList.remove('hidden');
+
+            // 3. Disable the 'Submit' button
+            submitButton.disabled = true;
+            submitButton.classList.add('opacity-75', 'cursor-not-allowed');
+
+            try {
+                // Perform the fetch request to the backend
+                // Note: The X-CSRFToken is a placeholder for Django or similar frameworks.
+                // If not using such a framework, this header might need to be removed or adjusted.
+                const response = await fetch('/submissions/submit/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        // 'X-CSRFToken': '{{ csrf_token }}' // Uncomment and ensure this token is dynamically generated by your backend
+                    },
+                    body: new URLSearchParams({
+                        'problem_id': problemId,
+                        'code': code,
+                        'language': language, // Send selected language
+                        'user_id': userId
+                    })
+                });
+
+                // Check if the response was successful
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                // Parse the JSON response
+                const data = await response.json();
+
+                // Clear saved draft after successful submission
+                localStorage.removeItem(storageKey);
+                console.log("Draft cleared from local storage after submission.");
+
+
+                // 4. Display the verdict, output, and detailed test case results
+                let resultOutput = `Verdict: ${data.verdict || 'Unknown'}\n\n`;
+                let verdictColorClass = '';
+
+                // Apply color and update verdict text based on the overall verdict
+                if (data.verdict === 'Accepted') {
+                    verdictColorClass = 'text-green-700';
+                    resultElement.classList.remove('bg-gray-100');
+                    resultElement.classList.add('bg-green-50');
+                } else if (data.verdict === 'Wrong Answer' || data.verdict === 'Time Limit Exceeded' || data.verdict === 'Memory Limit Exceeded' || data.verdict === 'Runtime Error') {
+                    verdictColorClass = 'text-red-700';
+                    resultElement.classList.remove('bg-gray-100');
+                    resultElement.classList.add('bg-red-50');
+                } else {
+                    verdictColorClass = 'text-yellow-700'; // E.g., for "Compiling", "Judging"
+                    resultElement.classList.remove('bg-gray-100');
+                    resultElement.classList.add('bg-yellow-50');
+                }
+                resultElement.classList.add(verdictColorClass);
+
+
+                // Display detailed test case results if available
+                if (data.test_results && Array.isArray(data.test_results)) {
+                    resultOutput += "Test Results:\n";
+                    data.test_results.forEach(tr => {
+                        resultOutput += `  Test Case ${tr.test_case}: ${tr.status}\n`;
+                        if (tr.status === "Failed") {
+                            resultOutput += `    Expected:\n${tr.expected}\n`;
+                            resultOutput += `    Actual:\n${tr.actual}\n\n`;
+                        }
+                    });
+                    resultOutput += "\n"; // Add extra newline for separation
+                } else if (data.output) {
+                    resultOutput += `Output:\n${data.output}\n`;
+                } else {
+                    resultOutput += "No standard output provided.\n";
+                }
+
+                resultElement.textContent = resultOutput;
+                errorResultElement.textContent = data.error || 'No error messages.';
+
+            } catch (error) {
+                // 5. Handle potential network errors or issues with the fetch operation
+                console.error('Error submitting code:', error);
+                showCustomAlert("Site Issue", `Failed to connect to the server or an internal error occurred: ${error.message}. Please check your network connection or try again later.`);
+                resultElement.textContent = 'Could not submit code due to an error.';
+                resultElement.classList.remove('bg-gray-100', 'bg-green-50', 'bg-yellow-50');
+                resultElement.classList.add('text-red-700', 'bg-red-50');
+            } finally {
+                // Ensure the button is re-enabled and spinner is hidden, regardless of success or failure
+                submitButtonText.textContent = 'Submit Code';
+                loadingSpinner.classList.add('hidden');
+                submitIcon.classList.remove('hidden');
+                submitButton.disabled = false;
+                submitButton.classList.remove('opacity-75', 'cursor-not-allowed');
+            }
+        }
+        async function runCode() {
+            // Check if user is authenticated
+            if (!isUserAuthenticated) {
+                showCustomAlert("Login Required", "Please log in first to submit your code.");
+                return; // Stop the submission process
+            }
+
+            // Ensure results section is visible upon submission
+            const resultsContainer = document.getElementById('resultsContainer');
+            // The console area now only has one tab, so no tab switching logic needed for it.
+            // Ensure the test-result-content is visible.
+            document.getElementById('test-result-content').classList.remove('hidden');
+
+
+            if (!resultsVisible) {
+                resultsContainer.classList.add('visible');
+                resultsVisible = true;
+            }
+
+            // Get code from Monaco Editor
+            const code = editor ? editor.getValue() : "# Editor not initialized or empty.";
+            const language = document.getElementById("language").value; // Get selected language
+
+            // Assuming problem_id is passed dynamically (e.g., from Django template context)
+            const problemId = '{{ problem.id }}';
+            // The user_id is hardcoded here, but in a real application, it should be
+            // dynamically obtained from the authenticated user's session/context.
+            const userId = '1'; // Placeholder for user ID
+
+            const resultElement = document.getElementById('result');
+            const errorResultElement = document.getElementById('errorResult');
+            const submitButton = document.getElementById('runButton');
+            const submitIcon = document.getElementById('runIcon');
+            const loadingSpinner = document.getElementById('loadingSpinnerRun');
+            const submitButtonText = submitButton.querySelector('span');
+
+            // Construct storageKey for clearing draft
+            const problemIdForStorage = '{{ problem.id }}' || '1';
+            const contestIdForStorage = '{{ contest.id }}' || '1';
+            const selectedLanguageForStorage = document.getElementById('language').value;
+            const storageKey = `contest_${contestIdForStorage}_problem_${problemIdForStorage}_${selectedLanguageForStorage}`;
+
+
+            // 1. Clear previous result messages and reset styling
+            resultElement.textContent = '';
+            errorResultElement.textContent = '';
+            resultElement.classList.remove('text-green-700', 'text-red-700', 'text-yellow-700', 'bg-green-50', 'bg-red-50', 'bg-yellow-50');
+            resultElement.classList.add('bg-gray-100'); // Default background
+
+            // 2. Display a loading spinner and 'Submitting...' text
+            submitButtonText.textContent = 'running...';
+            submitIcon.classList.add('hidden');
+            loadingSpinner.classList.remove('hidden');
+
+            // 3. Disable the 'Submit' button
+            submitButton.disabled = true;
+            submitButton.classList.add('opacity-75', 'cursor-not-allowed');
+
+            try {
+                // Perform the fetch request to the backend
+                // Note: The X-CSRFToken is a placeholder for Django or similar frameworks.
+                // If not using such a framework, this header might need to be removed or adjusted.
+                const response = await fetch('/submissions/run/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        // 'X-CSRFToken': '{{ csrf_token }}' // Uncomment and ensure this token is dynamically generated by your backend
+                    },
+                    body: new URLSearchParams({
+                        'problem_id': problemId,
+                        'code': code,
+                        'language': language, // Send selected language
+                        'user_id': userId
+                    })
+                });
+
+                // Check if the response was successful
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                // Parse the JSON response
+                const data = await response.json();
+
+                // Clear saved draft after successful submission
+                localStorage.removeItem(storageKey);
+                console.log("Draft cleared from local storage after submission.");
+
+
+                // 4. Display the verdict, output, and detailed test case results
+                let resultOutput = `Verdict: ${data.verdict || 'Unknown'}\n\n`;
+                let verdictColorClass = '';
+
+                // Apply color and update verdict text based on the overall verdict
+                if (data.verdict === 'Accepted') {
+                    verdictColorClass = 'text-green-700';
+                    resultElement.classList.remove('bg-gray-100');
+                    resultElement.classList.add('bg-green-50');
+                } else if (data.verdict === 'Wrong Answer' || data.verdict === 'Time Limit Exceeded' || data.verdict === 'Memory Limit Exceeded' || data.verdict === 'Runtime Error') {
+                    verdictColorClass = 'text-red-700';
+                    resultElement.classList.remove('bg-gray-100');
+                    resultElement.classList.add('bg-red-50');
+                } else {
+                    verdictColorClass = 'text-yellow-700'; // E.g., for "Compiling", "Judging"
+                    resultElement.classList.remove('bg-gray-100');
+                    resultElement.classList.add('bg-yellow-50');
+                }
+                resultElement.classList.add(verdictColorClass);
+
+
+                // Display detailed test case results if available
+                if (data.test_results && Array.isArray(data.test_results)) {
+                    resultOutput += "Test Results:\n";
+                    data.test_results.forEach(tr => {
+                        resultOutput += `  Test Case ${tr.test_case}: ${tr.status}\n`;
+                        if (tr.status === "Failed") {
+                            resultOutput += `    Expected:\n${tr.expected}\n`;
+                            resultOutput += `    Actual:\n${tr.actual}\n\n`;
+                        }
+                    });
+                    resultOutput += "\n"; // Add extra newline for separation
+                } else if (data.output) {
+                    resultOutput += `Output:\n${data.output}\n`;
+                } else {
+                    resultOutput += "No standard output provided.\n";
+                }
+
+                resultElement.textContent = resultOutput;
+                errorResultElement.textContent = data.error || 'No error messages.';
+
+            } catch (error) {
+                // 5. Handle potential network errors or issues with the fetch operation
+                console.error('Error running code:', error);
+                showCustomAlert("Site Issue", `Failed to connect to the server or an internal error occurred: ${error.message}. Please check your network connection or try again later.`);
+                resultElement.textContent = 'Could not run code due to an error.';
+                resultElement.classList.remove('bg-gray-100', 'bg-green-50', 'bg-yellow-50');
+                resultElement.classList.add('text-red-700', 'bg-red-50');
+            } finally {
+                // Ensure the button is re-enabled and spinner is hidden, regardless of success or failure
+                submitButtonText.textContent = 'run';
+                loadingSpinner.classList.add('hidden');
+                submitIcon.classList.remove('hidden');
+                submitButton.disabled = false;
+                submitButton.classList.remove('opacity-75', 'cursor-not-allowed');
+            }
+        }
+    </script>
+</body>
+</html>
