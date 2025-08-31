@@ -900,6 +900,27 @@
             color: #00c896; /* highlight text when selected */
             font-weight: 600;
         }
+        .alert {
+            display: none;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-weight: bold;
+            }
+            .alert-success {
+            color: #0f5132;
+            background-color: #d1e7dd;
+            border: 1px solid #badbcc;
+            }
+            .alert-error {
+            color: #842029;
+            background-color: #f8d7da;
+            border: 1px solid #f5c2c7;
+            }
+            .alert.show {
+            display: block;
+        }
+
 
     </style>
 </head>
@@ -1031,13 +1052,17 @@
                         {% endfor %}
                     </div>
                 </div>
-
                 <button type="submit" class="btn-primary" onclick="submitProblem(event)">Upload Problem</button>
                 {% if messages %}
-                    <div class="success-message" id="problemSuccess">{{ messages }}</div>
+                    {% for message in messages %}
+                        <div class="alert {% if message.tags == 'error' %}alert-error{% else %}alert-success{% endif %}" id="problemMessage">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
                 {% else %}
-                    <div class="success-message" id="problemSuccess">Problem uploaded successfully!</div>
+                    <div class="alert alert-success" id="problemMessage">Problem uploaded successfully!</div>
                 {% endif %}
+
             </form>
         </div>
 
@@ -1104,8 +1129,9 @@
             // Add active class to clicked button
             event.target.classList.add('active');
         }
+        
         function submitProblem(event) {
-            event.preventDefault(); // stop normal reload
+            event.preventDefault();
 
             const form = document.getElementById("upload-problem-form");
             const formData = new FormData(form);
@@ -1125,27 +1151,36 @@
                 if (!response.ok) throw new Error("Network error");
                 return response.text();
             })
-            .then(() => {
-                // success UI updates
-                document.getElementById('problemSuccess').classList.add('show');
-                form.reset();
+            .then(html => {
+                // Replace page content with new response (includes Django messages)
+                document.body.innerHTML = html;
 
-                const current = parseInt(document.getElementById('problemsUploaded').textContent);
-                document.getElementById('problemsUploaded').textContent = current + 1;
+                // Show the first alert (if any)
+                const msgBox = document.getElementById("problemMessage");
+                if (msgBox) {
+                    msgBox.classList.add("show");
+                    setTimeout(() => {
+                        msgBox.classList.remove("show");
+                    }, 3000);
+                }
 
                 btn.textContent = 'Upload Problem';
                 btn.disabled = false;
-
-                setTimeout(() => {
-                    document.getElementById('problemSuccess').classList.remove('show');
-                }, 3000);
             })
             .catch(error => {
                 console.error("Error:", error);
                 btn.textContent = 'Upload Problem';
                 btn.disabled = false;
+
+                const msgBox = document.getElementById("problemMessage");
+                if (msgBox) {
+                    msgBox.textContent = "Something went wrong. Try again.";
+                    msgBox.classList.remove("alert-success");
+                    msgBox.classList.add("alert-error", "show");
+                }
             });
         }
+
 
 
         function submitTestCase() {

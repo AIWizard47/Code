@@ -50,16 +50,11 @@ def upload_problem(request):
         tags = request.POST.getlist("tags")  # multiple checkboxes -> list
 
         print(title)
-        # if not title or not slug or not description or not input_description or not output_description or not constraints or not sample_input or not sample_output or not difficulty:
-        #     messages.error(request, "Title, Slug, and Description are required.")
-        #     print(messages)
-        #     return redirect('/administrator/dashboard/')
-        
-        print(not title)
-        if not title:
+        if not title or not slug or not description or not input_description or not output_description or not constraints or not sample_input or not sample_output or not difficulty:
             messages.error(request, "Title, Slug, and Description are required.")
-            print("error messages")
+            print(messages)
             return redirect('/administrator/dashboard/')
+        
         
         # Create new Problem object
         problem = Problem.objects.create(
@@ -81,10 +76,8 @@ def upload_problem(request):
         problem.save()
         # Add success message
         messages.success(request, "Problem uploaded successfully!")
-        return redirect('/')  # or redirect to problem list/detail
-    # GET request -> show upload form
-    tags = Tag.objects.all()  # send available tags to template
-    return render(request, "dashboard/home/index.html", {"tags": tags})
+        return redirect('/administrator/dashboard/')  # or redirect to problem list/detail
+    return redirect('/administrator/dashboard/')
 
 def upload_testcase(request):
     pass
