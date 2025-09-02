@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import ContestSubmission, Problem, Tag, ContestRegistration, Contest
+from .models import ContestSubmission, Problem, Tag, ContestRegistration, Contest, ProblemSolution
 from django.contrib.auth import logout
 from django.utils import timezone
 from django.db.models import Count, Q
@@ -8,6 +8,7 @@ from submissions.models import Submission
 from django.db.models import Subquery
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
+
 
 def problem_list(request):
     tag_name = request.GET.get('tag')
@@ -87,12 +88,21 @@ def problem_detail(request, slug):
     paginator = Paginator(submission_history, 4)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
+    problem_solutions = ProblemSolution.objects.filter(problem=problem).first()
+    
+    if problem_solutions:
+        problem_code = problem_solutions.code
+    else:
+        problem_code = "No solutions available."
+    # print(problem_code)
+        # problem_code = "No solutions available."
     
     return render(request, 'problems/problem_detail.html', {
         'problem': problem,
         'last_submission': last_submission,
         'selected_language': language,
         'submission_history': page_obj,
+        'problem_code':problem_code,
     })
 
 def contest_list(request):

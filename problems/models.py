@@ -68,3 +68,10 @@ class ContestRegistration(models.Model):
 
     class Meta:
         unique_together = ('user', 'contest')
+
+class ProblemSolution(models.Model):
+    problem = models.ForeignKey(Problem, on_delete=models.CASCADE, related_name="solutions")
+    code = models.TextField()
+    language = models.CharField(max_length=20)
+    explanation = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)

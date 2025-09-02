@@ -49,12 +49,9 @@ def upload_problem(request):
         difficulty = request.POST.get("difficulty")
         tags = request.POST.getlist("tags")  # multiple checkboxes -> list
 
-        print(title)
         if not title or not slug or not description or not input_description or not output_description or not constraints or not sample_input or not sample_output or not difficulty:
             messages.error(request, "Title, Slug, and Description are required.")
-            print(messages)
             return redirect('/administrator/dashboard/')
-        
         
         # Create new Problem object
         problem = Problem.objects.create(
@@ -74,10 +71,41 @@ def upload_problem(request):
                 tag, _ = Tag.objects.get_or_create(name=tag_name)
                 problem.tags.add(tag)
         problem.save()
+        problem_uploader, created = ProblemUploader.objects.get_or_create(user=request.user)
+        problem_uploader.problems.add(problem)
         # Add success message
         messages.success(request, "Problem uploaded successfully!")
         return redirect('/administrator/dashboard/')  # or redirect to problem list/detail
     return redirect('/administrator/dashboard/')
 
 def upload_testcase(request):
-    pass
+    if not request.user.is_authenticated:
+        return redirect('/accounts/login/')
+
+    if not (user_has_role(request.user, "Admin") or user_has_role(request.user, "TestCase Uploader")):
+        messages.error(request, "You do not have permission to access this page.")
+        return redirect('/accounts/login/')
+    
+    if request.method == 'POST':
+        problem_id = request.POST.get("problem_id")
+        input_file = request.FILES.get("input_file")
+        output_file = request.FILES.get("output_file")
+
+        if not problem_id or not input_file or not output_file:
+            messages.error(request, "All fields are required.")
+            return redirect('/administrator/dashboard/')
+        
+        try:
+            problem = Problem.objects.get(id=problem_id)
+        except Problem.DoesNotExist:
+            messages.error(request, "Problem does not exist.")
+            return redirect('/administrator/dashboard/')
+        
+        # Save files to the problem instance
+        problem.testcase_input.save(input_file.name, input_file)
+        problem.testcase_output.save(output_file.name, output_file)
+        problem.save()
+
+        messages.success(request, "Testcase uploaded successfully!")
+        return redirect('/administrator/dashboard/')
+    return redirect('/administrator/dashboard/')
