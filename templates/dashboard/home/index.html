@@ -1361,6 +1361,20 @@
             btn.disabled = false;
         });
     }
+    document.addEventListener("DOMContentLoaded", function () {
+        const titleInput = document.getElementById("title");
+        const slugInput = document.getElementById("slug");
+
+        if (titleInput && slugInput) {
+            titleInput.addEventListener("input", function () {
+                let slug = titleInput.value
+                    .toLowerCase()
+                    .replace(/[^a-z0-9]+/g, "-")   // replace spaces & symbols with -
+                    .replace(/^-+|-+$/g, "");       // trim - from start/end
+                slugInput.value = slug;
+            });
+        }
+    });
     </script>
 </body>
 </html>
