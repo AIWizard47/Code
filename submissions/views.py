@@ -220,7 +220,7 @@ def run_code(code, language, input_data):
     temp_dir = tempfile.mkdtemp()
 
     try:
-        if language == 'python':
+        if language == 'python' or language == 'Python' :
             file_path = os.path.join(temp_dir, 'main.py')
             with open(file_path, 'w') as f:
                 f.write(code)

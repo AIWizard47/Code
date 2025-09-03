@@ -1,7 +1,11 @@
-from django.shortcuts import render,redirect
+from django.shortcuts import render,redirect, get_object_or_404
+from django.http import JsonResponse
 from django.contrib import messages
-from problems.models import Problem,Tag
+from problems.models import Problem,Tag,TestCase, ProblemSolution
 from users.models import UserRole, Role, ProblemUploader
+from submissions.views import run
+from django.views.decorators.csrf import csrf_exempt
+import requests
 
 # Create your views here.
 def user_has_role(user, role_name: str) -> bool:
@@ -21,10 +25,13 @@ def home(request):
             count_uploaded_problems = uploader.problems.count()
         except ProblemUploader.DoesNotExist:
             count_uploaded_problems = 0
+    Problems = Problem.objects.all()
+    
     context = {
         'tags': tags,
         'role': role.role.name if role else 'No Role',
         'count_uploaded_problems': count_uploaded_problems,
+        'Problems': Problems,
     }
     return render(request, 'dashboard/home/index.html', context)
 
@@ -82,30 +89,116 @@ def upload_testcase(request):
     if not request.user.is_authenticated:
         return redirect('/accounts/login/')
 
-    if not (user_has_role(request.user, "Admin") or user_has_role(request.user, "TestCase Uploader")):
+    if not (user_has_role(request.user, "Problem Uploader") or user_has_role(request.user, "Admin") or user_has_role(request.user, "TestCase Uploader")):
         messages.error(request, "You do not have permission to access this page.")
         return redirect('/accounts/login/')
     
     if request.method == 'POST':
         problem_id = request.POST.get("problem_id")
-        input_file = request.FILES.get("input_file")
-        output_file = request.FILES.get("output_file")
+        input_data = request.POST.get("input_data")
+        expected_output = request.POST.get("expected_output")
+        is_sample = request.POST.get("is_sample") == "on"
 
-        if not problem_id or not input_file or not output_file:
+        if not problem_id or not input_data or not expected_output:
             messages.error(request, "All fields are required.")
             return redirect('/administrator/dashboard/')
-        
+
         try:
             problem = Problem.objects.get(id=problem_id)
         except Problem.DoesNotExist:
-            messages.error(request, "Problem does not exist.")
+            messages.error(request, "Problem not found.")
             return redirect('/administrator/dashboard/')
-        
-        # Save files to the problem instance
-        problem.testcase_input.save(input_file.name, input_file)
-        problem.testcase_output.save(output_file.name, output_file)
-        problem.save()
+
+        TestCase.objects.create(
+            problem=problem,
+            input_data=input_data,
+            expected_output=expected_output,
+            is_sample=is_sample
+        )
 
         messages.success(request, "Testcase uploaded successfully!")
         return redirect('/administrator/dashboard/')
+
+    return redirect('/administrator/dashboard/')
+
+def generate_output(request):
+    if request.user.is_authenticated == False:
+        return redirect('/accounts/login/')
+    if request.method == "POST":
+        problem_id = request.POST.get("problem_id")
+        input_data = request.POST.get("input_data")
+
+        if not problem_id or not input_data:
+            return JsonResponse({"success": False, "error": "Problem and input required."})
+
+        try:
+            problem = Problem.objects.get(id=problem_id)
+        except Problem.DoesNotExist:
+            return JsonResponse({"success": False, "error": "Problem not found."})
+
+        # Get solution code & language from DB
+        print(problem_id, input_data)
+        problem_solutions = ProblemSolution.objects.filter(problem=problem).first()
+        if not problem_solutions:
+            return JsonResponse({"success": False, "error": "No solution code available for this problem."})    
+        solution_code = problem_solutions.code   # assuming this field exists
+        language = problem_solutions.language # fallback
+        print(language, solution_code)
+        
+        try:
+            # Call the sandbox service directly
+            response = requests.post("https://sandbox-production-ed09.up.railway.app/run/", json={
+                "code": solution_code,
+                "language": language,
+                "input": input_data
+            }, timeout=10)
+
+            if response.status_code != 200:
+                return JsonResponse({"success": False, "error": "Sandbox error: " + response.text})
+
+            result = response.json()
+            stdout = result.get("output", "")
+            stderr = result.get("error", "")
+
+            if stderr:
+                return JsonResponse({"success": False, "error": stderr})
+
+            return JsonResponse({"success": True, "output": stdout.strip()})
+
+        except requests.exceptions.Timeout:
+            return JsonResponse({"success": False, "error": "Sandbox request timed out."})
+        except Exception as e:
+            return JsonResponse({"success": False, "error": str(e)})
+
+    return JsonResponse({"success": False, "error": "Invalid request."})
+
+def upload_solution(request):
+    if not request.user.is_authenticated:
+        return redirect('/accounts/login/')
+
+    if not (user_has_role(request.user, "Admin") or user_has_role(request.user, "Problem Uploader")):
+        messages.error(request, "You do not have permission to access this page.")
+        return redirect('/accounts/login/')
+    
+    if request.method == "POST":
+        problem_id = request.POST.get("problem")
+        input_code = request.POST.get("input_code")
+        language = request.POST.get("language")
+        explanation = request.POST.get("explanation")
+
+        if not problem_id or not input_code or not language or not explanation:
+            messages.error(request, "All fields are required.")
+            return redirect('/administrator/dashboard/')
+
+        problem = get_object_or_404(Problem, id=problem_id)
+        ProblemSolution.objects.create(
+            problem=problem,
+            code=input_code,
+            language=language,
+            explanation=explanation
+        )
+
+        messages.success(request, "Solution uploaded successfully!")
+        return redirect('/administrator/dashboard/')
+
     return redirect('/administrator/dashboard/')
