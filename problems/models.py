@@ -42,7 +42,7 @@ class Contest(models.Model):
     name = models.CharField(max_length=200)
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
-    problems = models.ManyToManyField('Problem', related_name='contests')
+    problems = models.ManyToManyField('Problem', related_name='contests_problems')
 
     def __str__(self):
         return self.name

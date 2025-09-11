@@ -144,7 +144,6 @@ def generate_output(request):
         solution_code = problem_solutions.code   # assuming this field exists
         language = problem_solutions.language # fallback
         print(language, solution_code)
-        
         try:
             # Call the sandbox service directly
             response = requests.post("https://sandbox-production-ed09.up.railway.app/run/", json={

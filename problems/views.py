@@ -108,7 +108,17 @@ def problem_detail(request, slug):
 def contest_list(request):
     now = timezone.now()
     contests = Contest.objects.all().order_by('-start_time')
-    return render(request, 'problems/contest_list.html', {'contests': contests, 'now': now})
+
+    # Attach duration in hours directly to each contest
+    for contest in contests:
+        duration = contest.end_time - contest.start_time
+        contest.duration_hours = int(round(duration.total_seconds() // 3600, 2))  # in hours
+
+    context = { 
+        'contests': contests,
+        'now': now,
+    }
+    return render(request, 'problems/contest_list.html', context)
 
 @login_required
 def contest_detail(request, pk):
@@ -129,13 +139,16 @@ def contest_detail(request, pk):
             submission_status[problem.id] = latest_submission.verdict
         else:
             submission_status[problem.id] = "Unattempted"   
-
-    return render(request, 'problems/contest_detail.html', {
+    duration = contest.end_time - contest.start_time
+    contest.duration_hours = int(round(duration.total_seconds() // 3600, 2))  # in hours
+    context = {
         'contest': contest,
         'problems': problems,
         'now': now,
         'submission_status': submission_status,
-    })
+    }
+    
+    return render(request, 'problems/contest_detail.html',context )
 
 
 def contest_leaderboard(request, pk):

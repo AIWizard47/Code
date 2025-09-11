@@ -5,311 +5,866 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contest Details</title>
-    <!-- Tailwind CSS CDN -->
+    <title>CodeChallenge Hub - {{ contest.name }}</title>
+    <!-- Tailwind CSS CDN for utility classes -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts - Inter for modern typography, with various weights for flexibility -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
-        /* Custom scrollbar for better aesthetics */
+        /* -------------------------------------------------------------------------- */
+        /* Global & Base Styles                                                       */
+        /* -------------------------------------------------------------------------- */
+
+        html, body {
+            height: 100%;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            font-family: 'Inter', sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
+            line-height: 1.5;
+        }
+
+        /* Custom scrollbar styling for a consistent dark theme look */
         ::-webkit-scrollbar {
             width: 8px;
             height: 8px;
         }
         ::-webkit-scrollbar-track {
-            background: #2d3748; /* Darker track for consistency with body */
+            background: #282828;
             border-radius: 4px;
         }
         ::-webkit-scrollbar-thumb {
-            background: #6b7280; /* Tailwind gray-500 */
+            background: #555;
             border-radius: 4px;
+            border: 1px solid #3a3a3a;
         }
         ::-webkit-scrollbar-thumb:hover {
-            background: #9ca3af; /* Tailwind gray-400 */
+            background: #777;
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* Main Container Layout                                                      */
+        /* -------------------------------------------------------------------------- */
+
+        .main-container {
+            display: flex;
+            min-height: 100vh;
+            flex-direction: row;
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* Sidebar Navigation                                                         */
+        /* -------------------------------------------------------------------------- */
+
+        .sidebar {
+            width: 280px;
+            background-color: #1e1e1e;
+            border-right: 1px solid #3a3a3a;
+            padding: 2rem 0;
+            position: fixed;
+            left: 0;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 100;
+        }
+
+        .sidebar-header {
+            padding: 0 2rem 2rem;
+            border-bottom: 1px solid #3a3a3a;
+            margin-bottom: 2rem;
+        }
+
+        .sidebar-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: linear-gradient(90deg, #5e21c3 0%, #2196f3 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .sidebar-subtitle {
+            font-size: 0.9rem;
+            color: #888;
+        }
+
+        .sidebar nav {
+            padding: 0 1rem;
+        }
+
+        .sidebar nav a {
+            display: block;
+            padding: 1rem 1.5rem;
+            margin: 0.5rem 0;
+            border-radius: 8px;
+            color: #b0b0b0;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            position: relative;
+            font-weight: 500;
+        }
+
+        .sidebar nav a:hover, .sidebar nav a.active {
+            background-color: #333;
+            color: #ffffff;
+            transform: translateX(5px);
+        }
+
+        .sidebar nav a.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 4px;
+            height: 60%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            border-radius: 2px;
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* Top Header Bar                                                             */
+        /* -------------------------------------------------------------------------- */
+
+        .top-header {
+            background-color: #1e1e1e;
+            border-bottom: 1px solid #3a3a3a;
+            padding: 1rem 2rem;
+            margin-left: 280px;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .breadcrumb {
+            font-size: 0.9rem;
+            color: #888;
+        }
+
+        .breadcrumb span {
+            color: #667eea;
+        }
+
+        .user-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .user-actions a {
+            color: #b0b0b0;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            border: 1px solid #555;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .user-actions a:hover {
+            background-color: #333;
+            border-color: #667eea;
+            color: #fff;
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* Main Content Area                                                          */
+        /* -------------------------------------------------------------------------- */
+
+        .content-area {
+            margin-left: 280px;
+            padding: 2rem;
+            flex: 1;
+            background-color: #121212;
+        }
+
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 2rem;
+        }
+
+        .page-title-section {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .page-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(90deg, #5e21c3 0%, #2196f3 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-subtitle {
+            color: #888;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+        }
+
+        .contest-meta {
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+            color: #c0c0c0;
+            font-size: 1rem;
+        }
+
+        .contest-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .contest-meta-label {
+            font-weight: 600;
+            color: #888;
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* Status Alerts                                                              */
+        /* -------------------------------------------------------------------------- */
+
+        .status-alert {
+            background-color: #1e1e1e;
+            border-radius: 12px;
+            border: 1px solid;
+            padding: 1.5rem 2rem;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .status-alert.upcoming {
+            border-color: #3b82f6;
+            background-color: #1e3a8a;
+        }
+
+        .status-alert.running {
+            border-color: #38a169;
+            background-color: #1f6b4d;
+        }
+
+        .status-alert.ended {
+            border-color: #e53e3e;
+            background-color: #9b2c2c;
+        }
+
+        .status-alert-icon {
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .status-alert-content {
+            flex: 1;
+        }
+
+        .status-alert-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .status-alert-text {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        /* Timer specific styles */
+        .timer-display {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #68d391;
+            font-family: 'Courier New', monospace;
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* Problems Section                                                           */
+        /* -------------------------------------------------------------------------- */
+
+        .problems-section {
+            background-color: #1e1e1e;
+            border-radius: 12px;
+            border: 1px solid #3a3a3a;
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        .problems-header {
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid #3a3a3a;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .problems-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #e0e0e0;
+        }
+
+        .problems-count {
+            background-color: #667eea;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .problems-list {
+            padding: 0;
+        }
+
+        .problem-item {
+            border-bottom: 1px solid #3a3a3a;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .problem-item:last-child {
+            border-bottom: none;
+        }
+
+        .problem-item:hover {
+            background-color: #252525;
+        }
+
+        .problem-item-content {
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .problem-item-info {
+            flex: 1;
+        }
+
+        .problem-item-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 0.25rem;
+        }
+
+        .problem-item-description {
+            color: #888;
+            font-size: 0.9rem;
+        }
+
+        .problem-status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border: 1px solid;
+            gap: 0.5rem;
+        }
+
+        .status-accepted {
+            background-color: #1f6b4d;
+            color: #68d391;
+            border-color: #38a169;
+        }
+
+        .status-wrong {
+            background-color: #9b2c2c;
+            color: #fc8181;
+            border-color: #e53e3e;
+        }
+
+        .status-error {
+            background-color: #a06e1e;
+            color: #fbd38d;
+            border-color: #ecc94b;
+        }
+
+        .status-unattempted {
+            background-color: #3a3a3a;
+            color: #a0aec0;
+            border-color: #555;
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* Registration Section                                                       */
+        /* -------------------------------------------------------------------------- */
+
+        .registration-section {
+            background-color: #1e1e1e;
+            border-radius: 12px;
+            border: 1px solid #3a3a3a;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .registration-alert {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid;
+            margin-bottom: 1.5rem;
+        }
+
+        .registration-alert.login-required {
+            border-color: #ecc94b;
+            background-color: #a06e1e;
+        }
+
+        .registration-alert.register-available {
+            border-color: #667eea;
+            background-color: #1e3a8a;
+        }
+
+        .registration-alert.registered {
+            border-color: #38a169;
+            background-color: #1f6b4d;
+        }
+
+        .registration-button {
+            background: linear-gradient(90deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+
+        .registration-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(106, 17, 203, 0.3);
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* Responsive Design                                                          */
+        /* -------------------------------------------------------------------------- */
+
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .top-header,
+            .content-area {
+                margin-left: 0;
+            }
+
+            .top-header {
+                padding-left: 4rem;
+            }
+
+            .mobile-menu-button {
+                display: block;
+                position: fixed;
+                top: 1rem;
+                left: 1rem;
+                z-index: 200;
+                background-color: #1e1e1e;
+                border: 1px solid #3a3a3a;
+                color: #e0e0e0;
+                padding: 0.5rem;
+                border-radius: 6px;
+                cursor: pointer;
+            }
+
+            .content-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .contest-meta {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .top-header {
+                padding: 1rem;
+                flex-direction: column;
+                gap: 1rem;
+                align-items: stretch;
+            }
+
+            .user-actions {
+                justify-content: center;
+            }
+
+            .content-area {
+                padding: 1rem;
+            }
+
+            .page-title {
+                font-size: 2rem;
+            }
+
+            .status-alert {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .problem-item-content {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 1rem;
+            }
+
+            .timer-display {
+                font-size: 1.2rem;
+            }
+        }
+
+        .mobile-menu-button {
+            display: none;
         }
     </style>
 </head>
-<body class="bg-gradient-to-br from-gray-900 to-gray-700 min-h-screen font-sans text-gray-100 flex flex-col p-4">
+<body class="bg-gray-900 text-gray-100">
 
-    <!-- Header Navigation -->
-    <header class="w-full flex justify-center py-6 mb-8 px-4">
-        <nav class="space-x-8 text-lg font-medium">
-            <a href="/" class="text-gray-300 hover:text-white transition duration-200 ease-in-out px-4 py-2 rounded-lg">Problems</a>
-            <a href="/submissions/history/" class="text-gray-300 hover:text-white transition duration-200 ease-in-out px-4 py-2 rounded-lg">My Submissions</a>
-            <a href="/submissions/leaderboard/" class="text-gray-300 hover:text-white transition duration-200 ease-in-out px-4 py-2 rounded-lg">Leaderboard</a>
-            {% if user.is_authenticated %}
-                <a href="/accounts/logout/" class="text-gray-300 hover:text-white transition duration-200 ease-in-out px-4 py-2 rounded-lg">Logout</a>
-            {% else %}
-                <a href="/accounts/login/" class="text-gray-300 hover:text-white transition duration-200 ease-in-out px-4 py-2 rounded-lg">Login</a>
-            {% endif %}
-        </nav>
-    </header>
+    <!-- Mobile Menu Button -->
+    <button class="mobile-menu-button" onclick="toggleSidebar()">
+        ☰
+    </button>
 
-    <div class="bg-white p-10 rounded-3xl shadow-2xl w-full mx-auto max-w-4xl flex-grow border border-gray-200 mb-8 text-gray-800">
-        <h2 class="text-5xl font-extrabold text-center text-gray-800 mb-8 drop-shadow-lg">{{ contest.name }}</h2>
+    <!-- Main Container -->
+    <div class="main-container">
         
-        <p class="text-lg text-center text-gray-600 mb-6">
-            <span class="font-semibold">Start:</span> {{ contest.start_time }} 
-            <span class="mx-2">|</span> 
-            <span class="font-semibold">End:</span> {{ contest.end_time }}
-        </p>
-
-        {% if now < contest.start_time %}
-            <div class="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 rounded-lg shadow-md mb-8" role="alert">
-                <p class="font-bold text-lg">This contest has not started yet.</p>
-                <p class="text-sm">Please check back at {{ contest.start_time }}.</p>
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-title">Code</div>
+                <div class="sidebar-subtitle">Problem Hub</div>
             </div>
-        {% elif now > contest.end_time %}
-            <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg shadow-md mb-8" role="alert">
-                <p class="font-bold text-lg">This contest has ended.</p>
-                <p class="text-sm">You can view the problems and your past submissions.</p>
-            </div>
-        {% else %}
-            <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded-lg shadow-md mb-8 flex items-center justify-center space-x-3" role="alert">
-                <svg class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <div id="timer" class="font-bold text-xl"></div>
-            </div>
-            <script>
-                // IMPORTANT: Ensure contest.end_time is passed as an ISO 8601 string (e.g., "YYYY-MM-DDTHH:MM:SSZ")
-                // from your Django view for accurate JavaScript Date parsing.
-                // Example: contest.end_time.isoformat() in Django view
-                const endTime = new Date("{{ contest.end_time|date:'c' }}").getTime();
-                const timerElement = document.getElementById("timer");
+            <nav>
+                <a href="/problems/">🔍 Problems</a>
+                <a href="/problems/contests/" class="active">🏆 Contests</a>
+                <a href="/submissions/history/">📋 My Submissions</a>
+                <a href="/submissions/leaderboard/">🥇 Leaderboard</a>
+            </nav>
+        </aside>
 
-                function updateTimer() {
-                    const now = new Date().getTime();
-                    const diff = endTime - now;
-
-                    if (diff <= 0) {
-                        timerElement.textContent = "Contest has ended.";
-                        // Disable editor and submit button if they exist on the page
-                        if (window.editor) {
-                            window.editor.updateOptions({readOnly: true});
-                        }
-                        const submitButton = document.getElementById("submitButton");
-                        if (submitButton) {
-                            submitButton.disabled = true;
-                            submitButton.classList.add('opacity-50', 'cursor-not-allowed');
-                        }
-                        clearInterval(timerInterval);
-                        return;
-                    }
-
-                    const hours = Math.floor(diff / (1000 * 60 * 60));
-                    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-                    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-                    timerElement.textContent = "Time Remaining: " + 
-                                                String(hours).padStart(2, '0') + "h " + 
-                                                String(minutes).padStart(2, '0') + "m " + 
-                                                String(seconds).padStart(2, '0') + "s";
-                }
-
-                const timerInterval = setInterval(updateTimer, 1000);
-                updateTimer(); // Initial call to display immediately
-            </script>
-
-            <h3 class="text-3xl font-bold text-gray-800 mb-6 mt-10">Problems in this Contest</h3>
-            <ul class="space-y-3">
-                {% for problem in problems %}
-                    <li class="bg-gray-50 p-4 rounded-lg shadow-sm border border-gray-200 hover:bg-gray-100 transition duration-200 flex justify-between items-center">
-                        <a href="{% url 'contest_problem_detail' contest.id problem.id %}" class="text-indigo-700 hover:text-indigo-900 font-semibold text-lg block">
-                            {{ problem.title }}
-                        </a>
-                        {% comment %}
-                            IMPORTANT:
-                            The `submission_status` context variable should be a dictionary
-                            where keys are `problem.id` and values are the latest `verdict` string
-                            for the logged-in user for that problem in this contest.
-                            Example Django view snippet:
-                            from django.shortcuts import render
-                            from django.utils import timezone
-                            from submissions.models import Submission # Assuming your model path
-                            from contests.models import Contest, Problem # Assuming your model paths
-
-                            def contest_detail_view(request, contest_id):
-                                contest = get_object_or_404(Contest, id=contest_id)
-                                problems = contest.problems.all().order_by('title') # Assuming a ManyToMany or ForeignKey relationship
-
-                                submission_status = {}
-                                if request.user.is_authenticated:
-                                    for problem in problems:
-                                        latest_submission = Submission.objects.filter(
-                                            user=request.user,
-                                            problem=problem,
-                                            contest=contest # Filter by contest if your Submission model has a contest field
-                                        ).order_by('-created_at').first()
-                                        if latest_submission:
-                                            submission_status[problem.id] = latest_submission.verdict
-                                        else:
-                                            submission_status[problem.id] = "Unattempted" # Explicitly set if no submission
-
-                                context = {
-                                    'contest': contest,
-                                    'problems': problems,
-                                    'now': timezone.now(),
-                                    'submission_status': submission_status,
-                                }
-                                return render(request, 'your_app_name/contest_detail.html', context)
-
-                            # You might also need a custom template filter for dictionary lookup if not already defined:
-                            # In templatetags/your_filters.py:
-                            # from django import template
-                            # register = template.Library()
-                            # @register.filter(name='get_item')
-                            # def get_item(dictionary, key):
-                            #     return dictionary.get(key)
-                            # Then in your template: {% load your_filters %}
-                        {% endcomment %}
-                            {% if problem_status == "Accepted" %}
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">✅ Solved</span>
-                            {% elif problem_status == "Wrong Answer" %}
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">❌ Wrong Answer</span>
-                            {% elif problem_status == "Error" or problem_status == "Runtime Error" or problem_status == "Time Limit Exceeded" or problem_status == "Memory Limit Exceeded" %}
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">⚠️ Error</span>
-                            {% else %}
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">⏳ Unattempted</span>
-                            {% endif %}
-                    </li>
-                {% endfor %}
-            </ul>
-        {% endif %}
-        
-        <!-- Contest Registration Logic -->
-        <div class="mt-10 pt-6 border-t border-gray-200">
-            {% if not user.is_authenticated %}
-                <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded-lg shadow-md" role="alert">
-                    <p class="font-bold text-lg">Please log in to register for this contest.</p>
-                    <p class="text-sm mt-1">
-                        <a href="{% url 'login' %}?next={{ request.path }}" class="font-semibold text-yellow-800 hover:underline">Login here</a>
-                    </p>
+        <!-- Main Content Wrapper -->
+        <div style="flex: 1;">
+            
+            <!-- Top Header Bar -->
+            <header class="top-header">
+                <div class="breadcrumb">
+                    Dashboard / <a href="/problems/contests/" style="color: #667eea;">Contests</a> / <span>{{ contest.name }}</span>
                 </div>
-            {% elif now < contest.start_time %}
-                {% comment %}
-                    IMPORTANT:
-                    The `is_registered` custom template filter is required for this part.
-                    Example templatetags/your_filters.py:
-                    from django import template
-                    register = template.Library()
+                <div class="user-actions">
+                    {% if user.is_authenticated %}
+                        <span>Welcome, {{ user.username }}</span>
+                        <a href="/problems/logout/">Logout</a>
+                    {% else %}
+                        <a href="/accounts/login/">Login</a>
+                        <a href="/account/registrations/">Sign Up</a>
+                    {% endif %}
+                </div>
+            </header>
 
-                    @register.filter(name='is_registered')
-                    def is_registered(contest, user):
-                        # Assuming Contest has a ManyToMany relationship to User through a 'participants' field
-                        # Or a separate Registration model
-                        return contest.participants.filter(id=user.id).exists()
-                    # Then in your template: {% load your_filters %}
-                {% endcomment %}
-                {% if not contest|is_registered:user %}
-                    <div class="bg-indigo-100 border-l-4 border-indigo-500 text-indigo-700 p-4 rounded-lg shadow-md">
-                        <p class="font-bold text-lg mb-3">Ready to join?</p>
-                        <form action="{% url 'register_for_contest' contest.id %}" method="post" class="flex items-center space-x-4">
-                            {% csrf_token %}
-                            <button type="submit" class="px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all duration-200 transform hover:scale-105 active:scale-95">
-                                Register for Contest
-                            </button>
-                        </form>
+            <!-- Content Area -->
+            <main class="content-area">
+                
+                <!-- Page Header -->
+                <div class="content-header">
+                    <div class="page-title-section">
+                        <h1 class="page-title">{{ contest.name }}</h1>
+                        <p class="page-subtitle">{{ contest.description|default:"A competitive programming contest to test your skills" }}</p>
+                        <div class="contest-meta">
+                            <div class="contest-meta-item">
+                                <span class="contest-meta-label">Start:</span>
+                                <span>{{ contest.start_time|date:"M d, Y g:i A" }}</span>
+                            </div>
+                            <div class="contest-meta-item">
+                                <span class="contest-meta-label">End:</span>
+                                <span>{{ contest.end_time|date:"M d, Y g:i A" }}</span>
+                            </div>
+                            <div class="contest-meta-item">
+                                <span class="contest-meta-label">Duration:</span>
+                                <span>{% if contest.duration_hours %}{{ contest.duration_hours }} hours{% else %}2 hours{% endif %}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Contest Status Alert -->
+                {% if now < contest.start_time %}
+                    <div class="status-alert upcoming">
+                        <div class="status-alert-icon">🔵</div>
+                        <div class="status-alert-content">
+                            <div class="status-alert-title">Contest Not Started</div>
+                            <div class="status-alert-text">This contest will begin on {{ contest.start_time|date:"M d, Y \a\t g:i A" }}. Please check back then.</div>
+                        </div>
+                    </div>
+                {% elif now > contest.end_time %}
+                    <div class="status-alert ended">
+                        <div class="status-alert-icon">🔴</div>
+                        <div class="status-alert-content">
+                            <div class="status-alert-title">Contest Ended</div>
+                            <div class="status-alert-text">This contest has finished. You can view the problems and your past submissions.</div>
+                        </div>
                     </div>
                 {% else %}
-                    <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded-lg shadow-md" role="alert">
-                        <p class="font-bold text-lg">You are successfully registered for this contest!</p>
-                        <p class="text-sm mt-1">Good luck!</p>
+                    <div class="status-alert running">
+                        <div class="status-alert-icon">🟢</div>
+                        <div class="status-alert-content">
+                            <div class="status-alert-title">Contest Running</div>
+                            <div id="timer" class="timer-display">Calculating...</div>
+                        </div>
+                    </div>
+                    
+                    <script>
+                        // Contest timer functionality
+                        const endTime = new Date("{{ contest.end_time|date:'c' }}").getTime();
+                        const timerElement = document.getElementById("timer");
+
+                        function updateTimer() {
+                            const now = new Date().getTime();
+                            const diff = endTime - now;
+
+                            if (diff <= 0) {
+                                timerElement.textContent = "Contest has ended";
+                                timerElement.style.color = "#fc8181";
+                                // Disable any submit functionality
+                                const submitButtons = document.querySelectorAll('[id*="submit"], [class*="submit"]');
+                                submitButtons.forEach(btn => {
+                                    btn.disabled = true;
+                                    btn.classList.add('opacity-50', 'cursor-not-allowed');
+                                });
+                                clearInterval(timerInterval);
+                                return;
+                            }
+
+                            const hours = Math.floor(diff / (1000 * 60 * 60));
+                            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+                            
+                            timerElement.textContent = `Time Remaining: ${String(hours).padStart(2, '0')}h ${String(minutes).padStart(2, '0')}m ${String(seconds).padStart(2, '0')}s`;
+                        }
+
+                        const timerInterval = setInterval(updateTimer, 1000);
+                        updateTimer(); // Initial call
+                    </script>
+                {% endif %}
+
+                <!-- Problems Section -->
+                {% if now >= contest.start_time %}
+                    <div class="problems-section">
+                        <div class="problems-header">
+                            <h2 class="problems-title">Contest Problems</h2>
+                            <span class="problems-count">{{ problems.count }} Problem{{ problems.count|pluralize }}</span>
+                        </div>
+                        <div class="problems-list">
+                            {% for problem in problems %}
+                                <a href="{% url 'contest_problem_detail' contest.id problem.id %}" class="problem-item">
+                                    <div class="problem-item-content">
+                                        <div class="problem-item-info">
+                                            <div class="problem-item-title">{{ problem.title }}</div>
+                                            <div class="problem-item-description">
+                                                {{ problem.short_description|default:"A challenging problem to test your coding skills." }}
+                                            </div>
+                                        </div>
+                                        <div class="problem-status">
+                                            {% comment %} {% with problem_status=submission_status|get_item:problem.id %}
+                                                {% if problem_status == "Accepted" %}
+                                                    <span class="problem-status-badge status-accepted">✅ Solved</span>
+                                                {% elif problem_status == "Wrong Answer" %}
+                                                    <span class="problem-status-badge status-wrong">❌ Wrong Answer</span>
+                                                {% elif problem_status == "Error" or problem_status == "Runtime Error" or problem_status == "Time Limit Exceeded" or problem_status == "Memory Limit Exceeded" %}
+                                                    <span class="problem-status-badge status-error">⚠️ Error</span>
+                                                {% else %}
+                                                    <span class="problem-status-badge status-unattempted">⏳ Unattempted</span>
+                                                {% endif %}
+                                            {% endwith %} {% endcomment %}
+                                        </div>
+                                    </div>
+                                </a>
+                            {% empty %}
+                                <div style="padding: 2rem; text-align: center; color: #888;">
+                                    <div style="font-size: 3rem; opacity: 0.5; margin-bottom: 1rem;">📝</div>
+                                    <h3 style="color: #b0b0b0; margin-bottom: 0.5rem;">No Problems Available</h3>
+                                    <p>Problems for this contest have not been added yet.</p>
+                                </div>
+                            {% endfor %}
+                        </div>
                     </div>
                 {% endif %}
-            {% endif %}
+                
+                <!-- Contest Registration Section -->
+                <div class="registration-section">
+                    {% if not user.is_authenticated %}
+                        <div class="registration-alert login-required">
+                            <div style="font-size: 1.5rem;">⚠️</div>
+                            <div>
+                                <div style="font-weight: 700; margin-bottom: 0.5rem;">Login Required</div>
+                                <div style="font-size: 0.9rem;">Please log in to register for this contest and participate.</div>
+                                <div style="margin-top: 1rem;">
+                                    <a href="{% url 'login' %}?next={{ request.path }}" 
+                                       style="color: #fbd38d; font-weight: 600; text-decoration: underline;">Login here</a>
+                                </div>
+                            </div>
+                        </div>
+                    {% elif now < contest.start_time %}
+                        {% if not contest|is_registered:user %}
+                            <div class="registration-alert register-available">
+                                <div style="font-size: 1.5rem;">🎯</div>
+                                <div>
+                                    <div style="font-weight: 700; margin-bottom: 0.5rem;">Ready to Join?</div>
+                                    <div style="font-size: 0.9rem;">Register now to participate in this contest when it starts.</div>
+                                </div>
+                            </div>
+                            <form action="{% url 'register_for_contest' contest.id %}" method="post">
+                                {% csrf_token %}
+                                <button type="submit" class="registration-button">
+                                    Register for Contest
+                                </button>
+                            </form>
+                        {% else %}
+                            <div class="registration-alert registered">
+                                <div style="font-size: 1.5rem;">✅</div>
+                                <div>
+                                    <div style="font-weight: 700; margin-bottom: 0.5rem;">Successfully Registered!</div>
+                                    <div style="font-size: 0.9rem;">You are registered for this contest. Good luck when it starts!</div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endif %}
+                </div>
+
+            </main>
         </div>
     </div>
 
-    {% comment %}
-        Example Django context variables for local testing:
-        <script>
-            const contest = {
-                id: 1, // Needed for registration URL
-                name: "Weekly Coding Challenge #1",
-                start_time: "2025-07-01 10:00:00 UTC", // Example: replace with actual Django format
-                end_time: "2025-07-01T12:00:00Z", // ISO 8601 format for JS Date parsing
-            };
-            // Example 'now' variable for testing different states:
-            // const now = new Date("2025-07-01 09:00:00 UTC"); // Before start
-            // const now = new Date("2025-07-01 11:00:00 UTC"); // During contest
-            // const now = new Date("2025-07-01 13:00:00 UTC"); // After end
-            const now = new Date(); // Current time for live testing
+    <script>
+        // JavaScript functionality for the CodeChallenge Hub - Contest Detail
+        
+        // Toggle sidebar on mobile
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('open');
+        }
 
-            const problems = [
-                { id: 1, title: "Problem A: Sum of Two Numbers" },
-                { id: 2, title: "Problem B: Find the Missing Element" },
-                { id: 3, title: "Problem C: Longest Common Subsequence" },
-            ];
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Close sidebar when clicking outside on mobile
+            document.addEventListener('click', function(e) {
+                const sidebar = document.getElementById('sidebar');
+                const menuButton = document.querySelector('.mobile-menu-button');
+                
+                if (window.innerWidth <= 1024 && 
+                    !sidebar.contains(e.target) && 
+                    !menuButton.contains(e.target) &&
+                    sidebar.classList.contains('open')) {
+                    sidebar.classList.remove('open');
+                }
+            });
 
-            // Example `submission_status` for local testing.
-            // In a real Django app, this would be passed from your view.
-            const submission_status = {
-                1: "Accepted",
-                2: "Wrong Answer",
-                // 3: "Unattempted" (or not present in the dict)
-            };
+            // Add smooth scrolling for better UX
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                });
+            });
 
-            // Example `user` object and `is_registered` function for local testing.
-            // In a real Django app, `user.is_authenticated` and `contest|is_registered:user`
-            // would be handled by Django's template engine.
-            const user = {
-                is_authenticated: true, // Set to true/false to test login state
-                id: 123 // Example user ID
-            };
+            // Initialize problem status tooltips
+            initializeProblemTooltips();
+        });
 
-            // This is a dummy function for local testing only.
-            // In Django, you would have a real template filter.
-            function is_registered(contest, user) {
-                // Simulate registration status for local testing
-                // For example, assume user 123 is registered for contest 1
-                return user.is_authenticated && contest.id === 1 && user.id === 123;
+        // Initialize tooltips for problem statuses
+        function initializeProblemTooltips() {
+            const statusBadges = document.querySelectorAll('.problem-status-badge');
+            
+            statusBadges.forEach(badge => {
+                const status = badge.textContent.trim();
+                let tooltip = '';
+                
+                switch(status) {
+                    case '✅ Solved':
+                        tooltip = 'You have successfully solved this problem';
+                        break;
+                    case '❌ Wrong Answer':
+                        tooltip = 'Your solution produced incorrect output';
+                        break;
+                    case '⚠️ Error':
+                        tooltip = 'Your solution encountered an error during execution';
+                        break;
+                    case '⏳ Unattempted':
+                        tooltip = 'You have not attempted this problem yet';
+                        break;
+                }
+                
+                if (tooltip) {
+                    badge.setAttribute('title', tooltip);
+                }
+            });
+        }
+
+        // Handle responsive behavior
+        window.addEventListener('resize', function() {
+            const sidebar = document.getElementById('sidebar');
+            
+            if (window.innerWidth > 1024) {
+                sidebar.classList.remove('open');
             }
+        });
 
+        // Add keyboard navigation support
+        document.addEventListener('keydown', function(e) {
+            // ESC key closes mobile sidebar
+            if (e.key === 'Escape') {
+                const sidebar = document.getElementById('sidebar');
+                if (sidebar.classList.contains('open')) {
+                    sidebar.classList.remove('open');
+                }
+            }
+        });
 
-            // This script block is for demonstrating the HTML structure locally.
-            // In a real application, these variables would be populated by your backend context.
-
-            // To simulate Django context for local testing, you would manually set these:
-            // For `contest.end_time|date:'c'`, ensure your Django view passes an ISO 8601 string.
-            // For `now`, you would typically compare `datetime.now()` in your Django view.
-            // The `if/elif/else` blocks are Django template logic, so for pure HTML testing,
-            // you'd manually uncomment the relevant section.
-
-            // Example of how to simulate `contest` and `problems` for local testing
-            // (You'd need to manually uncomment the relevant {% if %} block above to test different states)
-            // document.addEventListener('DOMContentLoaded', () => {
-            //     // Manually update elements if not using Django template engine
-            //     document.querySelector('h2').textContent = contest.name;
-            //     document.querySelector('p.text-lg').innerHTML = `<span class="font-semibold">Start:</span> ${contest.start_time} <span class="mx-2">|</span> <span class="font-semibold">End:</span> ${contest.end_time}`;
-            //
-            //     const problemsList = document.querySelector('ul.space-y-3');
-            //     if (problemsList) {
-            //         problemsList.innerHTML = ''; // Clear existing
-            //         problems.forEach(problem => {
-            //             const li = document.createElement('li');
-            //             li.className = 'bg-gray-50 p-4 rounded-lg shadow-sm border border-gray-200 hover:bg-gray-100 transition duration-200 flex justify-between items-center';
-            //
-            //             let statusHtml = '';
-            //             const currentProblemStatus = submission_status[problem.id]; // Access status from the JS object
-            //             if (currentProblemStatus === "Accepted") {
-            //                 statusHtml = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">✅ Solved</span>';
-            //             } else if (currentProblemStatus === "Wrong Answer") {
-            //                 statusHtml = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">❌ Wrong Answer</span>';
-            //             } else if (currentProblemStatus === "Error" || currentProblemStatus === "Runtime Error" || currentProblemStatus === "Time Limit Exceeded" || currentProblemStatus === "Memory Limit Exceeded") {
-            //                 statusHtml = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">⚠️ Error</span>';
-            //             } else {
-            //                 statusHtml = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">⏳ Unattempted</span>';
-            //             }
-            //
-            //             li.innerHTML = `
-            //                 <a href="/problems/${problem.id}/" class="text-indigo-700 hover:text-indigo-900 font-semibold text-lg block">
-            //                     ${problem.title}
-            //                 </a>
-            //                 ${statusHtml}
-            //             `;
-            //             problemsList.appendChild(li);
-            //         });
-            //     }
-            // });
-        </script>
-    {% endcomment %}
+        // Contest registration form enhancement
+        const registrationForm = document.querySelector('form[action*="register_for_contest"]');
+        if (registrationForm) {
+            registrationForm.addEventListener('submit', function(e) {
+                const button = this.querySelector('button[type="submit"]');
+                if (button) {
+                    button.disabled = true;
+                    button.textContent = 'Registering...';
+                    button.style.opacity = '0.7';
+                }
+            }); 
+        }
+    </script>
 </body>
 </html>

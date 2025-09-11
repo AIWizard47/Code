@@ -3,169 +3,1224 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contests</title>
-    <!-- Tailwind CSS CDN -->
+    <title>CodeChallenge Hub - Contests</title>
+    <!-- Tailwind CSS CDN for utility classes -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts - Inter for modern typography, with various weights for flexibility -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
-        /* Custom scrollbar for better aesthetics */
+        /* -------------------------------------------------------------------------- */
+        /* Global & Base Styles                                                       */
+        /* -------------------------------------------------------------------------- */
+
+        html, body {
+            height: 100%;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            font-family: 'Inter', sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
+            line-height: 1.5;
+        }
+
+        /* Custom scrollbar styling for a consistent dark theme look */
         ::-webkit-scrollbar {
             width: 8px;
             height: 8px;
         }
         ::-webkit-scrollbar-track {
-            background: #2d3748; /* Darker track for consistency with body */
+            background: #282828;
             border-radius: 4px;
         }
         ::-webkit-scrollbar-thumb {
-            background: #6b7280; /* Tailwind gray-500 */
+            background: #555;
             border-radius: 4px;
+            border: 1px solid #3a3a3a;
         }
         ::-webkit-scrollbar-thumb:hover {
-            background: #9ca3af; /* Tailwind gray-400 */
+            background: #777;
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* Main Container Layout                                                      */
+        /* -------------------------------------------------------------------------- */
+
+        .main-container {
+            display: flex;
+            min-height: 100vh;
+            flex-direction: row;
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* Sidebar Navigation                                                         */
+        /* -------------------------------------------------------------------------- */
+
+        .sidebar {
+            width: 280px;
+            background-color: #1e1e1e;
+            border-right: 1px solid #3a3a3a;
+            padding: 2rem 0;
+            position: fixed;
+            left: 0;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 100;
+        }
+
+        .sidebar-header {
+            padding: 0 2rem 2rem;
+            border-bottom: 1px solid #3a3a3a;
+            margin-bottom: 2rem;
+        }
+
+        .sidebar-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: linear-gradient(90deg, #5e21c3 0%, #2196f3 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .sidebar-subtitle {
+            font-size: 0.9rem;
+            color: #888;
+        }
+
+        .sidebar nav {
+            padding: 0 1rem;
+        }
+
+        .sidebar nav a {
+            display: block;
+            padding: 1rem 1.5rem;
+            margin: 0.5rem 0;
+            border-radius: 8px;
+            color: #b0b0b0;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            position: relative;
+            font-weight: 500;
+        }
+
+        .sidebar nav a:hover, .sidebar nav a.active {
+            background-color: #333;
+            color: #ffffff;
+            transform: translateX(5px);
+        }
+
+        .sidebar nav a.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 4px;
+            height: 60%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            border-radius: 2px;
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* Top Header Bar                                                             */
+        /* -------------------------------------------------------------------------- */
+
+        .top-header {
+            background-color: #1e1e1e;
+            border-bottom: 1px solid #3a3a3a;
+            padding: 1rem 2rem;
+            margin-left: 280px;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .breadcrumb {
+            font-size: 0.9rem;
+            color: #888;
+        }
+
+        .breadcrumb span {
+            color: #667eea;
+        }
+
+        .user-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .user-actions a {
+            color: #b0b0b0;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            border: 1px solid #555;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .user-actions a:hover {
+            background-color: #333;
+            border-color: #667eea;
+            color: #fff;
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* Main Content Area                                                          */
+        /* -------------------------------------------------------------------------- */
+
+        .content-area {
+            margin-left: 280px;
+            padding: 2rem;
+            flex: 1;
+            background-color: #121212;
+        }
+
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 2rem;
+        }
+
+        .page-title-section {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .page-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(90deg, #5e21c3 0%, #2196f3 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-subtitle {
+            color: #888;
+            font-size: 1.1rem;
+        }
+
+        .stats-section {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .stat-card {
+            background-color: #1e1e1e;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            border: 1px solid #3a3a3a;
+            text-align: center;
+            min-width: 100px;
+        }
+
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: #888;
+            margin-top: 0.25rem;
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* Filter Panel                                                               */
+        /* -------------------------------------------------------------------------- */
+
+        .filter-panel {
+            background-color: #1e1e1e;
+            border-radius: 12px;
+            border: 1px solid #3a3a3a;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .filter-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .filter-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #e0e0e0;
+        }
+
+        .filter-toggle {
+            background: none;
+            border: none;
+            color: #667eea;
+            cursor: pointer;
+            font-size: 0.9rem;
+            padding: 0.5rem;
+        }
+
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .filter-grid.hidden {
+            display: none;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .filter-group label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #b0b0b0;
+        }
+
+        .filter-group select, 
+        .filter-group input[type="text"] {
+            background-color: #282828;
+            border: 1px solid #555;
+            color: #e0e0e0;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .filter-group select:focus, 
+        .filter-group input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .filter-actions {
+            grid-column: 1 / -1;
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .filter-button {
+            background: linear-gradient(90deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .filter-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(106, 17, 203, 0.3);
+        }
+
+        .clear-button {
+            background: none;
+            color: #888;
+            border: 1px solid #555;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .clear-button:hover {
+            background-color: #333;
+            color: #fff;
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* Contests Table Layout                                                      */
+        /* -------------------------------------------------------------------------- */
+
+        .contests-container {
+            background-color: #1e1e1e;
+            border-radius: 12px;
+            border: 1px solid #3a3a3a;
+            overflow: hidden;
+        }
+
+        .contests-header {
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid #3a3a3a;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .contests-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #e0e0e0;
+        }
+
+        .view-toggle {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .view-button {
+            padding: 0.5rem 1rem;
+            background: none;
+            border: 1px solid #555;
+            color: #888;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.8rem;
+        }
+
+        .view-button.active {
+            background-color: #667eea;
+            border-color: #667eea;
+            color: #fff;
+        }
+
+        /* Table View */
+        .contests-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .contests-table th {
+            background-color: #282828;
+            padding: 1rem 2rem;
+            text-align: left;
+            font-weight: 600;
+            color: #b0b0b0;
+            font-size: 0.9rem;
+            border-bottom: 1px solid #3a3a3a;
+        }
+
+        .contests-table td {
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid #3a3a3a;
+            vertical-align: middle;
+        }
+
+        .contests-table tr:hover {
+            background-color: #252525;
+        }
+
+        .contest-title-cell {
+            font-weight: 600;
+            color: #667eea;
+            font-size: 1.1rem;
+        }
+
+        .contest-title-cell:hover {
+            color: #8da4f7;
+        }
+
+        .status-cell .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border: 1px solid;
+        }
+
+        .status-upcoming {
+            background-color: #1e3a8a;
+            color: #93c5fd;
+            border-color: #3b82f6;
+        }
+
+        .status-running {
+            background-color: #1f6b4d;
+            color: #68d391;
+            border-color: #38a169;
+        }
+
+        .status-ended {
+            background-color: #9b2c2c;
+            color: #fc8181;
+            border-color: #e53e3e;
+        }
+
+        .datetime-cell {
+            color: #c0c0c0;
+            font-size: 0.9rem;
+        }
+
+        .datetime-label {
+            color: #888;
+            font-size: 0.8rem;
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+
+        /* Grid View */
+        .contests-grid {
+            display: none;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 1.5rem;
+            padding: 2rem;
+        }
+
+        .contests-grid.active {
+            display: grid;
+        }
+
+        .contest-card {
+            background-color: #1e1e1e;
+            border-radius: 12px;
+            padding: 2rem;
+            border: 1px solid #3a3a3a;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .contest-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            border-color: #667eea;
+        }
+
+        .contest-card-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 1rem;
+        }
+
+        .contest-card-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .contest-card-times {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .contest-card-time {
+            color: #c0c0c0;
+            font-size: 0.9rem;
+        }
+
+        .contest-card-description {
+            color: #c0c0c0;
+            margin-bottom: 1rem;
+            line-height: 1.6;
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* Pagination                                                                 */
+        /* -------------------------------------------------------------------------- */
+
+        .pagination-container {
+            padding: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid #3a3a3a;
+        }
+
+        .pagination-info {
+            color: #888;
+            font-size: 0.9rem;
+        }
+
+        .pagination-controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .pagination-controls a, .pagination-controls button {
+            padding: 0.75rem 1.5rem;
+            background-color: #333;
+            color: #e0e0e0;
+            text-decoration: none;
+            border-radius: 8px;
+            border: 1px solid #555;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .pagination-controls a:hover, .pagination-controls button:hover {
+            background-color: #667eea;
+            border-color: #667eea;
+        }
+
+        .pagination-controls span {
+            color: #888;
+            font-weight: 500;
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* Empty State                                                                */
+        /* -------------------------------------------------------------------------- */
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #888;
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #b0b0b0;
+        }
+
+        .empty-state p {
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* Responsive Design                                                          */
+        /* -------------------------------------------------------------------------- */
+
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .top-header,
+            .content-area {
+                margin-left: 0;
+            }
+
+            .top-header {
+                padding-left: 4rem;
+            }
+
+            .mobile-menu-button {
+                display: block;
+                position: fixed;
+                top: 1rem;
+                left: 1rem;
+                z-index: 200;
+                background-color: #1e1e1e;
+                border: 1px solid #3a3a3a;
+                color: #e0e0e0;
+                padding: 0.5rem;
+                border-radius: 6px;
+                cursor: pointer;
+            }
+
+            .content-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .filter-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .contests-table {
+                font-size: 0.8rem;
+            }
+
+            .contests-table th,
+            .contests-table td {
+                padding: 0.75rem 1rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .top-header {
+                padding: 1rem;
+                flex-direction: column;
+                gap: 1rem;
+                align-items: stretch;
+            }
+
+            .user-actions {
+                justify-content: center;
+            }
+
+            .content-area {
+                padding: 1rem;
+            }
+
+            .page-title {
+                font-size: 2rem;
+            }
+
+            .stats-section {
+                justify-content: center;
+            }
+
+            .contests-table-container {
+                overflow-x: auto;
+            }
+
+            .contests-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .contest-card {
+                padding: 1.5rem;
+            }
+
+            .pagination-container {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+        }
+
+        .mobile-menu-button {
+            display: none;
         }
     </style>
 </head>
-<body class="bg-gradient-to-br from-gray-900 to-gray-700 min-h-screen font-sans text-gray-100 flex flex-col p-4">
+<body class="bg-gray-900 text-gray-100">
 
-    <!-- Header Navigation -->
-    <header class="w-full flex justify-center py-6 mb-8 px-4">
-        <nav class="space-x-8 text-lg font-medium">
-            <a href="/" class="text-gray-300 hover:text-white transition duration-200 ease-in-out px-4 py-2 rounded-lg">Problems</a>
-            <a href="/submissions/history/" class="text-gray-300 hover:text-white transition duration-200 ease-in-out px-4 py-2 rounded-lg">My Submissions</a>
-            <a href="/submissions/leaderboard/" class="text-gray-300 hover:text-white transition duration-200 ease-in-out px-4 py-2 rounded-lg">Leaderboard</a>
-            {% if user.is_authenticated %}
-                <a href="/accounts/logout/" class="text-gray-300 hover:text-white transition duration-200 ease-in-out px-4 py-2 rounded-lg">Logout</a>
-            {% else %}
-                <a href="/accounts/login/" class="text-gray-300 hover:text-white transition duration-200 ease-in-out px-4 py-2 rounded-lg">Login</a>
-            {% endif %}
-        </nav>
-    </header>
+    <!-- Mobile Menu Button -->
+    <button class="mobile-menu-button" onclick="toggleSidebar()">
+        ☰
+    </button>
 
-    <div class="bg-white p-10 rounded-3xl shadow-2xl w-full mx-auto max-w-4xl flex-grow border border-gray-200 mb-8 text-gray-800">
-        <h2 class="text-5xl font-extrabold text-center text-gray-800 mb-10 drop-shadow-lg">Contests</h2>
+    <!-- Main Container -->
+    <div class="main-container">
         
-        <div class="space-y-4">
-            {% for contest in contests %}
-                <div class="bg-gray-50 p-6 rounded-lg shadow-sm border border-gray-200 hover:bg-gray-100 transition duration-200 flex flex-col sm:flex-row justify-between items-start sm:items-center">
-                    <div class="flex-grow mb-2 sm:mb-0">
-                        <a href="{% url 'contest_detail' contest.id %}" class="text-indigo-700 hover:text-indigo-900 font-semibold text-xl block">
-                            {{ contest.name }}
-                        </a>
-                        <p class="text-sm text-gray-600 mt-1">
-                            <span class="font-medium">Start:</span> {{ contest.start_time }} 
-                            <span class="mx-1">|</span> 
-                            <span class="font-medium">End:</span> {{ contest.end_time }}
-                        </p>
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-title">Code</div>
+                <div class="sidebar-subtitle">Problem Hub</div>
+            </div>
+            <nav>
+                <a href="/problems/">🔍 Problems</a>
+                <a href="/problems/contests/" class="active">🏆 Contests</a>
+                <a href="/submissions/history/">📋 My Submissions</a>
+                <a href="/submissions/leaderboard/">🥇 Leaderboard</a>
+            </nav>
+        </aside>
+
+        <!-- Main Content Wrapper -->
+        <div style="flex: 1;">
+            
+            <!-- Top Header Bar -->
+            <header class="top-header">
+                <div class="breadcrumb">
+                    Dashboard / <span>Contests</span>
+                </div>
+                <div class="user-actions">
+                    {% if user.is_authenticated %}
+                        <span>Welcome, {{ user.username }}</span>
+                        <a href="/problems/logout/">Logout</a>
+                    {% else %}
+                        <a href="/accounts/login/">Login</a>
+                        <a href="/account/registrations/">Sign Up</a>
+                    {% endif %}
+                </div>
+            </header>
+
+            <!-- Content Area -->
+            <main class="content-area">
+                
+                <!-- Page Header -->
+                <div class="content-header">
+                    <div class="page-title-section">
+                        <h1 class="page-title">Coding Contests</h1>
+                        <p class="page-subtitle">Compete with other programmers and test your skills in timed challenges</p>
                     </div>
-                    <div class="flex-shrink-0">
-                        {% if contest.start_time > now %}
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-blue-100 text-blue-800">
-                                Upcoming
-                            </span>
-                        {% elif contest.end_time < now %}
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-red-100 text-red-800">
-                                Ended
-                            </span>
-                        {% else %}
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-green-100 text-green-800">
-                                Running
-                            </span>
-                        {% endif %}
+                    <div class="stats-section">
+                        <div class="stat-card">
+                            <div class="stat-number" id="totalContests">{{ contests.count }}</div>
+                            <div class="stat-label">Total Contests</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="runningContests">{{ running_count|default:0 }}</div>
+                            <div class="stat-label">Running</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="upcomingContests">{{ upcoming_count|default:0 }}</div>
+                            <div class="stat-label">Upcoming</div>
+                        </div>
                     </div>
                 </div>
-            {% endfor %}
+
+                <!-- Filter Panel -->
+                <div class="filter-panel">
+                    <div class="filter-header">
+                        <h2 class="filter-title">🔍 Filter & Search</h2>
+                        <button class="filter-toggle" onclick="toggleFilters()">Hide Filters</button>
+                    </div>
+                    <form id="filterForm" class="filter-grid">
+                        <div class="filter-group">
+                            <label for="search">Search Contests</label>
+                            <input type="text" name="search" id="search" placeholder="Type contest name or keyword..." value="">
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label for="status">Contest Status</label>
+                            <select name="status" id="status">
+                                <option value="">All Statuses</option>
+                                <option value="upcoming">🔵 Upcoming</option>
+                                <option value="running">🟢 Running</option>
+                                <option value="ended">🔴 Ended</option>
+                            </select>
+                        </div>
+
+                        <div class="filter-group">
+                            <label for="date_range">Date Range</label>
+                            <select name="date_range" id="date_range">
+                                <option value="">All Dates</option>
+                                <option value="today">Today</option>
+                                <option value="this_week">This Week</option>
+                                <option value="this_month">This Month</option>
+                                <option value="next_month">Next Month</option>
+                            </select>
+                        </div>
+
+                        <div class="filter-actions">
+                            <button type="button" class="filter-button" onclick="applyFilters()">Apply Filters</button>
+                            <button type="button" class="clear-button" onclick="clearFilters()">Clear All</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Contests Container -->
+                <div class="contests-container">
+                    <div class="contests-header">
+                        <h2 class="contests-title">Contests List</h2>
+                        <div class="view-toggle">
+                            <button class="view-button active" onclick="switchView('table')">📋 Table</button>
+                            <button class="view-button" onclick="switchView('grid')">⊞ Grid</button>
+                        </div>
+                    </div>
+
+                    <!-- Table View -->
+                    <div class="contests-table-container" id="tableView">
+                        <table class="contests-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 35%;">Contest Name</th>
+                                    <th style="width: 20%;">Start Time</th>
+                                    <th style="width: 20%;">End Time</th>
+                                    <th style="width: 15%;">Duration</th>
+                                    <th style="width: 10%;">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="contestTableBody">
+                                {% for contest in contests %}
+                                <tr onclick="window.location.href='{% url 'contest_detail' contest.id %}';" style="cursor: pointer;">
+                                    <td>
+                                        <div class="contest-title-cell">{{ contest.name }}</div>
+                                        <div style="color: #888; font-size: 0.9rem; margin-top: 0.25rem;">
+                                            {{ contest.description|default:"A competitive programming contest." }}
+                                        </div>
+                                    </td>
+                                    <td class="datetime-cell">  
+                                        {{ contest.start_time|date:"M d, Y" }}<br>
+                                        <span style="color: #888; font-size: 0.8rem;">{{ contest.start_time|time:"g:i A" }}</span>
+                                    </td>
+                                    <td class="datetime-cell">
+                                        {{ contest.end_time|date:"M d, Y" }}<br>
+                                        <span style="color: #888; font-size: 0.8rem;">{{ contest.end_time|time:"g:i A" }}</span>
+                                    </td>
+                                    <td style="color: #c0c0c0;">
+                                        {% if contest.duration_hours %}
+                                            {{ contest.duration_hours }} hr
+                                        {% else %}
+                                            2 hours
+                                        {% endif %}
+                                    </td>
+                                    <td class="status-cell" style="text-align: center;">
+                                        {% if contest.start_time > now %}
+                                            <span class="status-badge status-upcoming">🔵 Upcoming</span>
+                                        {% elif contest.end_time < now %}
+                                            <span class="status-badge status-ended">🔴 Ended</span>
+                                        {% else %}
+                                            <span class="status-badge status-running">🟢 Running</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="empty-state">
+                                        <div class="empty-state-icon">🏆</div>
+                                        <h3>No Contests Found</h3>
+                                        <p>No contests match your current filter criteria.<br>Try adjusting your search or filters.</p>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Grid View -->
+                    <div class="contests-grid" id="gridView">
+                        {% for contest in contests %}
+                        <a href="{% url 'contest_detail' contest.id %}" class="contest-card">
+                            <div class="contest-card-meta">
+                                <h3 class="contest-card-title">{{ contest.name }}</h3>
+                                <span class="status-badge 
+                                    {% if contest.start_time > now %}status-upcoming
+                                    {% elif contest.end_time < now %}status-ended
+                                    {% else %}status-running
+                                    {% endif %}">
+                                    {% if contest.start_time > now %}🔵 Upcoming
+                                    {% elif contest.end_time < now %}🔴 Ended
+                                    {% else %}🟢 Running
+                                    {% endif %}
+                                </span>
+                            </div>
+                            <p class="contest-card-description">
+                                {{ contest.description|default:"A competitive programming contest to test your algorithmic skills." }}
+                            </p>
+                            <div class="contest-card-times">
+                                <div class="contest-card-time">
+                                    <span class="datetime-label">Start:</span>
+                                    {{ contest.start_time|date:"M d, Y g:i A" }}
+                                </div>
+                                <div class="contest-card-time">
+                                    <span class="datetime-label">End:</span>
+                                    {{ contest.end_time|date:"M d, Y g:i A" }}
+                                </div>
+                                <div class="contest-card-time">
+                                    <span class="datetime-label">Duration:</span>
+                                    {% if contest.duration %}{{ contest.duration }}{% else %}2 hours{% endif %}
+                                </div>
+                            </div>
+                        </a>
+                        {% empty %}
+                        <div class="empty-state" style="grid-column: 1 / -1;">
+                            <div class="empty-state-icon">🏆</div>
+                            <h3>No Contests Found</h3>
+                            <p>No contests match your current filter criteria.<br>Try adjusting your search or filters.</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Pagination -->
+                    <div class="pagination-container">
+                        <div class="pagination-info">
+                            Showing {{ contests.start_index|default:1 }}-{{ contests.end_index|default:contests.count }} of {{ contests.paginator.count|default:contests.count }} contests
+                        </div>
+                        <div class="pagination-controls">
+                            {% if contests.has_previous %}
+                                <a href="?page={{ contests.previous_page_number }}{% if selected_status %}&status={{ selected_status }}{% endif %}{% if selected_date_range %}&date_range={{ selected_date_range }}{% endif %}{% if selected_search %}&search={{ selected_search }}{% endif %}">
+                                    ← Previous
+                                </a>
+                            {% endif %}
+
+                            <span>Page {{ contests.number|default:1 }} of {{ contests.paginator.num_pages|default:1 }}</span>
+
+                            {% if contests.has_next %}
+                                <a href="?page={{ contests.next_page_number }}{% if selected_status %}&status={{ selected_status }}{% endif %}{% if selected_date_range %}&date_range={{ selected_date_range }}{% endif %}{% if selected_search %}&search={{ selected_search }}{% endif %}">
+                                    Next →
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+            </main>
         </div>
     </div>
 
-    {% comment %}
-        Example Django context variables for local testing:
-        <script>
-            // Note: For local testing, 'now' should be a JavaScript Date object.
-            // In a real Django template, 'now' would be a Python datetime object.
-            const now = new Date(); // Current time for live testing
+    <script>
+        // JavaScript functionality for the CodeChallenge Hub - Contests
+        
+        // Toggle sidebar on mobile
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('open');
+        }
 
-            const contests = [
-                {
-                    id: 1,
-                    name: "Weekly Coding Challenge #1",
-                    start_time: "2025-07-01 10:00:00 UTC", // Example: replace with actual Django format
-                    end_time: "2025-07-01 12:00:00 UTC"   // Example: replace with actual Django format
-                },
-                {
-                    id: 2,
-                    name: "Monthly Algo Sprint",
-                    start_time: "2025-07-10 09:00:00 UTC",
-                    end_time: "2025-07-10 17:00:00 UTC"
-                },
-                {
-                    id: 3,
-                    name: "Beginner's Contest",
-                    start_time: "2025-06-20 14:00:00 UTC",
-                    end_time: "2025-06-20 16:00:00 UTC"
-                },
-                {
-                    id: 4,
-                    name: "Future Challenge",
-                    start_time: "2025-08-01 08:00:00 UTC",
-                    end_time: "2025-08-01 10:00:00 UTC"
+        // Toggle filter panel visibility
+        function toggleFilters() {
+            const filterGrid = document.querySelector('.filter-grid');
+            const toggleButton = document.querySelector('.filter-toggle');
+            
+            if (filterGrid.classList.contains('hidden')) {
+                filterGrid.classList.remove('hidden');
+                toggleButton.textContent = 'Hide Filters';
+            } else {
+                filterGrid.classList.add('hidden');
+                toggleButton.textContent = 'Show Filters';
+            }
+        }
+
+        // Switch between table and grid view
+        function switchView(view) {
+            const tableView = document.getElementById('tableView');
+            const gridView = document.getElementById('gridView');
+            const viewButtons = document.querySelectorAll('.view-button');
+            
+            // Update active button
+            viewButtons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Switch views
+            if (view === 'table') {
+                tableView.style.display = 'block';
+                gridView.classList.remove('active');
+            } else {
+                tableView.style.display = 'none';
+                gridView.classList.add('active');
+            }
+        }
+
+        // Apply filters (will work with Django backend)
+        function applyFilters() {
+            const form = document.getElementById('filterForm');
+            const formData = new FormData(form);
+            const params = new URLSearchParams();
+            
+            // Build query parameters
+            for (const [key, value] of formData.entries()) {
+                if (value.trim() !== '') {
+                    params.append(key, value);
                 }
-            ];
+            }
+            
+            // Redirect with filters
+            const baseUrl = window.location.pathname;
+            const queryString = params.toString();
+            
+            if (queryString) {
+                window.location.href = `${baseUrl}?${queryString}`;
+            } else {
+                window.location.href = baseUrl;
+            }
+        }
 
-            // This script block is for demonstrating the HTML structure locally.
-            // In a real application, these variables would be populated by your backend context.
+        // Clear all filters
+        function clearFilters() {
+            const form = document.getElementById('filterForm');
+            form.reset();
+            
+            // Redirect to base URL without parameters
+            window.location.href = window.location.pathname;
+        }
 
-            // To simulate Django context for local testing, you would manually set these.
-            // The `{% if %}` blocks are Django template logic, so for pure HTML testing,
-            // you'd manually render the appropriate status or use JavaScript to dynamically
-            // determine and display the status based on the 'now' variable.
+        // Handle logout
+        function handleLogout() {
+            if (confirm('Are you sure you want to logout?')) {
+                window.location.href = '/logout/';
+            }
+        }
 
-            // Example of how to simulate `contests` for local testing
-            // document.addEventListener('DOMContentLoaded', () => {
-            //     const contestsContainer = document.querySelector('.space-y-4');
-            //     if (contestsContainer) {
-            //         contestsContainer.innerHTML = ''; // Clear existing
-            //         contests.forEach(contest => {
-            //             const contestStartTime = new Date(contest.start_time).getTime();
-            //             const contestEndTime = new Date(contest.end_time).getTime();
-            //             const currentTime = new Date().getTime();
-            //
-            //             let statusText = '';
-            //             let statusClass = '';
-            //             if (currentTime < contestStartTime) {
-            //                 statusText = 'Upcoming';
-            //                 statusClass = 'bg-blue-100 text-blue-800';
-            //             } else if (currentTime > contestEndTime) {
-            //                 statusText = 'Ended';
-            //                 statusClass = 'bg-red-100 text-red-800';
-            //             } else {
-            //                 statusText = 'Running';
-            //                 statusClass = 'bg-green-100 text-green-800';
-            //             }
-            //
-            //             const div = document.createElement('div');
-            //             div.className = 'bg-gray-50 p-6 rounded-lg shadow-sm border border-gray-200 hover:bg-gray-100 transition duration-200 flex flex-col sm:flex-row justify-between items-start sm:items-center';
-            //             div.innerHTML = `
-            //                 <div class="flex-grow mb-2 sm:mb-0">
-            //                     <a href="/contests/${contest.id}/" class="text-indigo-700 hover:text-indigo-900 font-semibold text-xl block">
-            //                         ${contest.name}
-            //                     </a>
-            //                     <p class="text-sm text-gray-600 mt-1">
-            //                         <span class="font-medium">Start:</span> ${contest.start_time}
-            //                         <span class="mx-1">|</span>
-            //                         <span class="font-medium">End:</span> ${contest.end_time}
-            //                     </p>
-            //                 </div>
-            //                 <div class="flex-shrink-0">
-            //                     <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold ${statusClass}">
-            //                         ${statusText}
-            //                     </span>
-            //                 </div>
-            //             `;
-            //             contestsContainer.appendChild(div);
-            //         });
-            //     }
-            // });
-        </script>
-    {% endcomment %}
-</body>
+        // Pagination functions (will work with Django pagination)
+        function previousPage() {
+            const currentUrl = new URL(window.location);
+            const currentPage = parseInt(currentUrl.searchParams.get('page') || '1');
+            
+            if (currentPage > 1) {
+                currentUrl.searchParams.set('page', currentPage - 1);
+                window.location.href = currentUrl.toString();
+            }
+        }
+
+        function nextPage() {
+            const currentUrl = new URL(window.location);
+            const currentPage = parseInt(currentUrl.searchParams.get('page') || '1');
+            
+            currentUrl.searchParams.set('page', currentPage + 1);
+            window.location.href = currentUrl.toString();
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Close sidebar when clicking outside on mobile
+            document.addEventListener('click', function(e) {
+                const sidebar = document.getElementById('sidebar');
+                const menuButton = document.querySelector('.mobile-menu-button');
+                
+                if (window.innerWidth <= 1024 && 
+                    !sidebar.contains(e.target) && 
+                    !menuButton.contains(e.target) &&
+                    sidebar.classList.contains('open')) {
+                    sidebar.classList.remove('open');
+                }
+            });
+
+            // Handle form submission with Enter key
+            const searchInput = document.getElementById('search');
+            if (searchInput) {
+                searchInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        applyFilters();
+                    }
+                });
+            }
+
+            // Handle filter changes
+            const statusSelect = document.getElementById('status');
+            const dateRangeSelect = document.getElementById('date_range');
+            
+            if (statusSelect) {
+                statusSelect.addEventListener('change', function() {
+                    // Auto-apply filters on select change (optional)
+                    // applyFilters();
+                });
+            }
+            
+            if (dateRangeSelect) {
+                dateRangeSelect.addEventListener('change', function() {
+                    // Auto-apply filters on select change (optional)
+                    // applyFilters();
+                });
+            }
+
+            // Add smooth scrolling for better UX
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                });
+            });
+
+            // Initialize tooltips or other UI enhancements
+            initializeTooltips();
+            
+            // Update contest status dynamically (real-time updates)
+            updateContestStatuses();
+            setInterval(updateContestStatuses, 60000); // Update every minute
+        });
+
+        // Initialize tooltips for better user experience
+        function initializeTooltips() {
+            const statusBadges = document.querySelectorAll('.status-badge');
+            
+            statusBadges.forEach(badge => {
+                const status = badge.textContent.trim();
+                let tooltip = '';
+                
+                switch(status) {
+                    case '🔵 Upcoming':
+                        tooltip = 'Contest has not started yet';
+                        break;
+                    case '🟢 Running':
+                        tooltip = 'Contest is currently active';
+                        break;
+                    case '🔴 Ended':
+                        tooltip = 'Contest has finished';
+                        break;
+                }
+                
+                if (tooltip) {
+                    badge.setAttribute('title', tooltip);
+                }
+            });
+        }
+
+        // Update contest statuses in real-time
+        function updateContestStatuses() {
+            const now = new Date();
+            const rows = document.querySelectorAll('#contestTableBody tr');
+            
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                if (cells.length >= 5) {
+                    const startTimeText = cells[1].textContent.trim();
+                    const endTimeText = cells[2].textContent.trim();
+                    const statusCell = cells[4].querySelector('.status-badge');
+                    
+                    if (statusCell && startTimeText && endTimeText) {
+                        // Parse times (this would need to be adjusted based on your actual date format)
+                        // This is a simplified example
+                        const startTime = new Date(startTimeText);
+                        const endTime = new Date(endTimeText);
+                        
+                        // Update status based on current time
+                        if (now < startTime) {
+                            statusCell.className = 'status-badge status-upcoming';
+                            statusCell.textContent = '🔵 Upcoming';
+                        } else if (now > endTime) {
+                            statusCell.className = 'status-badge status-ended';
+                            statusCell.textContent = '🔴 Ended';
+                        } else {
+                            statusCell.className = 'status-badge status-running';
+                            statusCell.textContent = '🟢 Running';
+                        }
+                    }
+                }
+            });
+        }
+
+        // Handle responsive behavior
+        window.addEventListener('resize', function() {
+            const sidebar = document.getElementById('sidebar');
+            
+            if (window.innerWidth > 1024) {
+                sidebar.classList.remove('open');
+            }
+        });
+
+        // Add keyboard navigation support
+        document.addEventListener('keydown', function(e) {
+            // ESC key closes mobile sidebar
+            if (e.key === 'Escape') {
+                const sidebar = document.getElementById('sidebar');
+                if (sidebar.classList.contains('open')) {
+                    sidebar.classList.remove('open');
+                }
+            }
+        });
+
+        // Add contest countdown functionality
+        function initializeCountdowns() {
+            const contestCards = document.querySelectorAll('.contest-card');
+            
+            contestCards.forEach(card => {
+                const statusBadge = card.querySelector('.status-badge');
+                if (statusBadge && statusBadge.textContent.includes('Upcoming')) {
+                    // Add countdown timer functionality here
+                    // This would require the actual contest start time data
+                }
+            });
+        }
+
+        // Call countdown initialization
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeCountdowns();
+        });
+    </script>
 </html>
