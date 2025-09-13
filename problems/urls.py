@@ -10,5 +10,6 @@ urlpatterns = [
     path('contests/<int:pk>/register/', views.register_for_contest, name='register_for_contest'),
     path("logout/",views.logout_view,name="logout"),
     path('contests/<int:contest_id>/problem/<int:problem_id>/',views.contest_problem_detail,name='contest_problem_detail'),
+    path("problem/<slug:slug>/generate/", views.generate_problem_variation, name="generate_problem_variation"),
 
 ]

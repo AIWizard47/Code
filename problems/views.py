@@ -8,6 +8,8 @@ from submissions.models import Submission
 from django.db.models import Subquery
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
+import random
+from django.contrib import messages
 
 
 def problem_list(request):
@@ -113,7 +115,6 @@ def contest_list(request):
     for contest in contests:
         duration = contest.end_time - contest.start_time
         contest.duration_hours = int(round(duration.total_seconds() // 3600, 2))  # in hours
-
     context = { 
         'contests': contests,
         'now': now,
@@ -225,3 +226,31 @@ def contest_problem_detail(request, contest_id, problem_id):
         'selected_language': language,
         'end_time': contest.end_time.isoformat(),
     })
+
+def generate_problem_variation(request, problem_id):
+    
+    problem = get_object_or_404(Problem, id=problem_id)
+    # Generate new statement variation
+    variation_title = f"Variation of {problem.title} #{random.randint(1,100)}"
+    variation_description = (
+        f"Alternate version: {problem.description}\n\n"
+        f"Task stays the same, only statement differs."
+    )
+
+    # Create variation problem that points back to original
+    variation = Problem.objects.create(
+        title=variation_title,
+        description=variation_description,
+        input_description=problem.input_description,
+        output_description=problem.output_description,
+        constraints=problem.constraints,
+        sample_input=problem.sample_input,
+        sample_output=problem.sample_output,
+        difficulty=problem.difficulty,
+        slug=f"{problem.slug}-v{random.randint(1000,9999)}",
+        base_problem=problem
+    )
+    variation.tags.set(problem.tags.all())
+
+    messages.success(request, "New variation generated successfully!")
+    return redirect("problem_detail", slug=variation.slug)

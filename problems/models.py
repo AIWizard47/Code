@@ -75,3 +75,16 @@ class ProblemSolution(models.Model):
     language = models.CharField(max_length=20)
     explanation = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    
+    
+# mostly story based or game based problems
+class ProblemVariant(models.Model):
+    base_problem = models.ForeignKey(Problem, on_delete=models.CASCADE, related_name="variants")
+    variant_title = models.CharField(max_length=200)
+    variant_description = models.TextField()
+    generated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    def __str__(self):
+        return f"Variant of {self.base_problem.title}"

@@ -783,6 +783,14 @@
                     </div>
                 </div>
 
+
+                
+<form method="post" action="{% url 'generate_problem_variation' problem.slug %}">
+  {% csrf_token %}
+  <button type="submit" class="btn btn-dark">✨ Generate New Question</button>
+</form>
+
+
                 <!-- Filter Panel -->
                 <div class="filter-panel">
                     <div class="filter-header">
