@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import User
 from django.conf import settings
 
 
@@ -25,6 +26,7 @@ class Problem(models.Model):
     difficulty = models.CharField(max_length=10, choices=DIFFICULTY_CHOICES)
     tags = models.ManyToManyField(Tag, related_name='problems')
     slug = models.SlugField(unique=True)
+    is_ai_source = models.BooleanField(default=False)
 
     def __str__(self):
         return self.title
@@ -87,4 +89,4 @@ class ProblemVariant(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
     def __str__(self):
-        return f"Variant of {self.base_problem.title}"
+        return f"Variant of {self.base_problem.title} {self.generated_by.username if self.generated_by else 'Unknown'}"

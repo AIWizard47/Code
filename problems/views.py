@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import ContestSubmission, Problem, Tag, ContestRegistration, Contest, ProblemSolution
+from .models import ContestSubmission, Problem, Tag, ContestRegistration, Contest, ProblemSolution, ProblemVariant
 from django.contrib.auth import logout
 from django.utils import timezone
 from django.db.models import Count, Q
@@ -8,15 +8,24 @@ from submissions.models import Submission
 from django.db.models import Subquery
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
-import random
+import random, string
 from django.contrib import messages
-
+import json
+from django.conf import settings
+import requests
 
 def problem_list(request):
     tag_name = request.GET.get('tag')
     difficulty = request.GET.get('difficulty')
 
     problems = Problem.objects.all().order_by('id')
+    ai_source_problem = Problem.objects.filter(is_ai_source=True).first()
+    problem_variant = ProblemVariant.objects.filter(generated_by=request.user).first()
+
+    if problem_variant is not None:
+        generated_user = problem_variant.generated_by
+    else:
+        generated_user = None
 
     # filter by tag
     if tag_name:
@@ -53,6 +62,8 @@ def problem_list(request):
         'problem_total_count': problem_total_count,
         'progress': progress,
         'problem_isSolved' :problem_isSolved,
+        'ai_source_problem': ai_source_problem,
+        'problem_variant': problem_variant,
     })
 
 
@@ -62,27 +73,14 @@ def problem_detail(request, slug):
     default_language = 'python'
 
     last_submission = None
-
     if request.user.is_authenticated:
         language = request.GET.get('language', default_language)
-
         last_submission = (
-            Submission.objects.filter(
-                user=request.user,
-                problem=problem,
-                language=language
-            )
+            Submission.objects.filter(user=request.user, problem=problem, language=language)
             .order_by('-created_at')
             .first()
         )
-
-        # Fetch all submissions for this problem
-        submission_history = (
-            Submission.objects.filter(
-                user=request.user,
-                problem=problem
-            ).order_by('-created_at')
-        )
+        submission_history = Submission.objects.filter(user=request.user, problem=problem).order_by('-created_at')
     else:
         language = default_language
         submission_history = Submission.objects.none()
@@ -90,22 +88,18 @@ def problem_detail(request, slug):
     paginator = Paginator(submission_history, 4)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
+
     problem_solutions = ProblemSolution.objects.filter(problem=problem).first()
-    
-    if problem_solutions:
-        problem_code = problem_solutions.code
-    else:
-        problem_code = "No solutions available."
-    # print(problem_code)
-        # problem_code = "No solutions available."
-    
+    problem_code = problem_solutions.code if problem_solutions else "No solutions available."
+
     return render(request, 'problems/problem_detail.html', {
         'problem': problem,
         'last_submission': last_submission,
         'selected_language': language,
         'submission_history': page_obj,
-        'problem_code':problem_code,
+        'problem_code': problem_code,
     })
+
 
 def contest_list(request):
     now = timezone.now()
@@ -227,30 +221,174 @@ def contest_problem_detail(request, contest_id, problem_id):
         'end_time': contest.end_time.isoformat(),
     })
 
-def generate_problem_variation(request, problem_id):
-    
-    problem = get_object_or_404(Problem, id=problem_id)
-    # Generate new statement variation
-    variation_title = f"Variation of {problem.title} #{random.randint(1,100)}"
-    variation_description = (
-        f"Alternate version: {problem.description}\n\n"
-        f"Task stays the same, only statement differs."
+
+@login_required
+def generate_problem_variation(request):
+    ai_source_problem = Problem.objects.filter(is_ai_source=True).first()
+    problem = get_object_or_404(Problem, id=ai_source_problem.id)
+
+    # Stop duplicate variants
+    if ProblemVariant.objects.filter(generated_by=request.user).exists():
+        messages.warning(request, "A variant already exists for this problem.")
+        return redirect("problem_list")
+
+    # 🔹 Call Gemini API
+    api_key = settings.GEMINI_API_KEY  # put your API key in settings.py
+    url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
+
+    headers = {
+        "Content-Type": "application/json",
+        "X-goog-api-key": api_key,
+    }
+
+    prompt = f"""
+        You are an AI assistant for a coding contest platform.
+
+        Given this problem:
+        Title: {problem.title}
+        Description: {problem.description}
+
+        Generate a new variation with:
+        1. A very short title (1 to 6 words max, never longer).
+        2. A rewritten description with RANDOM style. 
+        - It could be detailed & direct.
+        - Or a funny or dramatic story.
+        - Or phrased as instructions.
+        - Or a metaphorical situation.
+        - Or a real-world scenario.
+        - Or a puzzle or riddle.
+        - Or a game-like challenge.
+        - and min 40 words.
+        - and max 200 words.
+        - and also give some example input/output.
+        - and explain question by using input/output format clearly.
+        - Avoid repeating the original text.
+
+        Each time, vary the style and wording. Do NOT always choose the same style.
+
+        Return only valid JSON, no markdown, no explanation. 
+        Example output format:
+        {{
+        "title": "Short Title",
+        "description": "Creative or concise rewritten description"
+        }}
+    """
+
+
+
+    payload = {
+        "contents": [
+            {
+                "parts": [
+                    {"text": prompt}
+                ]
+            }
+        ],
+        "generationConfig": {
+            "temperature": 0.9,   # higher = more randomness
+            "top_p": 0.8,        # nucleus sampling
+            "top_k": 40          # diverse sampling
+        }
+    }
+
+    try:
+        response = requests.post(url, headers=headers, json=payload)
+        response.raise_for_status()
+        data = response.json()
+
+        # Extract text from Gemini response
+        ai_text = (
+            data.get("candidates", [{}])[0]
+            .get("content", {})
+            .get("parts", [{}])[0]
+            .get("text", "")
+        )
+        if not ai_text:
+            ai_text = '{"title": "Fallback", "description": "AI failed to generate."}'
+
+        # --- Clean Gemini's markdown fences if present ---
+        cleaned_text = ai_text.strip()
+        if cleaned_text.startswith("```"):
+            cleaned_text = cleaned_text.strip("`")  # remove all backticks
+            # remove optional "json" language hint
+            cleaned_text = cleaned_text.replace("json\n", "", 1).replace("json", "", 1)
+        # --- Parse JSON safely ---
+        variation_data = {}
+        try:
+            variation_data = json.loads(cleaned_text)
+        except json.JSONDecodeError:
+            print("AI did not return valid JSON. Raw:", ai_text)
+            variation_data = {
+                "title": f"Variation of {problem.title}",
+                "description": f"Alternate: {problem.description}",
+            }
+
+        variation_title = variation_data.get("title", f"Variation of {problem.title}")
+        variation_description = variation_data.get("description", problem.description)
+
+    except Exception as e:
+        print("Gemini API Error:", e)
+        variation_title = f"Variation of {problem.title}"
+        variation_description = f"Alternate storyline: {problem.description}"
+
+
+    except Exception as e:
+        print("Gemini API Error:", e)
+        variation_title = f"Variation of {problem.title}"
+        variation_description = f"Alternate storyline: {problem.description}"
+
+    # Save to DB
+    ProblemVariant.objects.create(
+        base_problem=problem,
+        variant_title=variation_title,
+        variant_description=variation_description,
+        generated_by=request.user,
     )
 
-    # Create variation problem that points back to original
-    variation = Problem.objects.create(
-        title=variation_title,
-        description=variation_description,
-        input_description=problem.input_description,
-        output_description=problem.output_description,
-        constraints=problem.constraints,
-        sample_input=problem.sample_input,
-        sample_output=problem.sample_output,
-        difficulty=problem.difficulty,
-        slug=f"{problem.slug}-v{random.randint(1000,9999)}",
-        base_problem=problem
-    )
-    variation.tags.set(problem.tags.all())
+    messages.success(request, "New AI-powered variation generated successfully! 🎉")
+    return redirect("problem_list")
 
-    messages.success(request, "New variation generated successfully!")
-    return redirect("problem_detail", slug=variation.slug)
+
+@login_required
+def potd_problem(request):
+    # Fetch today's AI-based problem (only 1 marked by admin)
+    problem = Problem.objects.filter(is_ai_source=True).first()
+
+    if not problem:
+        messages.error(request, "No POTD problem available.")
+        return redirect("problem_list")
+
+    # Get the user's personal variant of this problem
+    problem_variant = ProblemVariant.objects.filter(base_problem=problem, generated_by=request.user).first()
+
+    if not problem_variant:
+        messages.warning(request, "You have not generated your problem variation yet.")
+        return redirect("problem_list")
+
+    # Override problem title and description with the variant's version
+    problem.title = problem_variant.variant_title
+    problem.description = problem_variant.variant_description
+
+    default_language = "python"
+    language = request.GET.get("language", default_language)
+
+    last_submission = (
+        Submission.objects.filter(user=request.user, problem=problem, language=language)
+        .order_by("-created_at")
+        .first()
+    )
+    submission_history = Submission.objects.filter(user=request.user, problem=problem).order_by("-created_at")
+
+    paginator = Paginator(submission_history, 4)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
+    problem_code = "No solutions available."  # no predefined solution for POTD variants
+
+    return render(request, "problems/problem_detail.html", {
+        "problem": problem,
+        "last_submission": last_submission,
+        "selected_language": language,
+        "submission_history": page_obj,
+        "problem_code": problem_code,
+    })

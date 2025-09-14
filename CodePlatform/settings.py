@@ -164,3 +164,5 @@ LOGIN_REDIRECT_URL = '/'
 #     SECURE_SSL_REDIRECT = False
 #     SESSION_COOKIE_SECURE = False
 #     CSRF_COOKIE_SECURE = False
+
+GEMINI_API_KEY = "Fill in your Gemini API key here"
