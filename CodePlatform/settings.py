@@ -40,9 +40,10 @@ INSTALLED_APPS = [
     "django_htmx",
     'users',
     'submissions',
-    'problems',
+    "problems.apps.ProblemsConfig",
     'base',
     'administrator',
+    'players',
 ]
 
 MIDDLEWARE = [
@@ -165,4 +166,4 @@ LOGIN_REDIRECT_URL = '/'
 #     SESSION_COOKIE_SECURE = False
 #     CSRF_COOKIE_SECURE = False
 
-GEMINI_API_KEY = "Fill in your Gemini API key here"
+GEMINI_API_KEY = "AIzaSyBU-HIJ_QJInRzo_CLjh3P10fnQ5Tf1NZ0"

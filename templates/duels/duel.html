@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Duel - {{ you.username }} vs {{ opponent.username }}</title>
+  <style>
+    body { margin: 0; font-family: Arial, sans-serif; background: #121212; color: #fff; }
+    header { padding: 10px; background: #1e1e1e; text-align: center; font-size: 20px; font-weight: bold; }
+    .duel-container { display: grid; grid-template-columns: 1fr 2fr 1fr; height: calc(100vh - 50px); }
+    .sidebar { padding: 15px; background: #1c1c1c; border-right: 1px solid #333; }
+    .sidebar.right { border-left: 1px solid #333; }
+    .problem-area { padding: 15px; overflow-y: auto; }
+    .editor-area { height: 50%; }
+    textarea { width: 100%; height: 100%; background: #0d0d0d; color: #0f0; border: none; padding: 10px; font-family: monospace; resize: none; }
+    button { padding: 8px 16px; margin-top: 10px; background: crimson; color: white; border: none; cursor: pointer; border-radius: 4px; }
+    button:hover { background: #e63946; }
+    .status-box { background: #222; padding: 10px; border-radius: 6px; margin-top: 10px; }
+  </style>
+</head>
+<body>
+
+<header>🔥 Duel: {{ player1 }} vs {{ player2 }}</header>
+
+<div class="duel-container">
+  <!-- Opponent Sidebar -->
+  <div class="sidebar">
+    <h3>Opponent</h3>
+    <p>{{ opponent.username }}</p>
+    <div class="status-box">
+      <strong>Status:</strong> <span id="opponent-status">Coding...</span>
+    </div>
+  </div>
+
+  <!-- Problem + Editor -->
+  <div class="problem-area">
+    <h2>{{ problem.title }}</h2>
+    <p>{{ problem.description }}</p>
+
+    <div class="editor-area">
+      <textarea id="code-editor">// Write your solution here...</textarea>
+    </div>
+
+    <form method="post" action="">
+      {% csrf_token %}
+      <input type="hidden" name="code" id="hidden-code">
+      <button type="submit" onclick="beforeSubmit()">Submit</button>
+    </form>
+
+    <div id="submission-status" class="status-box">Not submitted</div>
+  </div>
+
+  <!-- Your Sidebar -->
+  <div class="sidebar right">
+    <h3>You</h3>
+    <p>{{ you.username }}</p>
+    <div class="status-box"><strong>Status:</strong> <span id="your-status">Coding...</span></div>
+    <div class="status-box"><strong>Timer:</strong> <span id="timer">05:00</span></div>
+  </div>
+</div>
+
+<script>
+  // Timer
+  let time = 300;
+  const timerEl = document.getElementById("timer");
+  setInterval(() => {
+    if (time > 0) {
+      time--;
+      let min = String(Math.floor(time / 60)).padStart(2, "0");
+      let sec = String(time % 60).padStart(2, "0");
+      timerEl.textContent = `${min}:${sec}`;
+    }
+  }, 1000);
+
+  // Hook textarea -> hidden input
+  function beforeSubmit() {
+    document.getElementById("hidden-code").value = document.getElementById("code-editor").value;
+    document.getElementById("submission-status").textContent = "Submitted! Waiting for judge...";
+    document.getElementById("your-status").textContent = "Submitted";
+  }
+</script>
+
+</body>
+</html>
