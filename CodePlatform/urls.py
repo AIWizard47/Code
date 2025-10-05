@@ -26,4 +26,5 @@ urlpatterns = [
     # path("user/",include("users.urls"))
     path('accounts/', include('django.contrib.auth.urls')),
     path('account/',include("users.urls")),
+    path('duels/', include('players.urls')),  # Added for duels
 ]

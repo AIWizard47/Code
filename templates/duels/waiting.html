@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>waiting</title>
+</head>
+<body>
+<h2>Waiting for opponent...</h2>
+
+<script>
+
+function checkMatch() {
+    fetch("{% url 'check_for_match' %}")
+        .then(response => response.json())
+        .then(data => {
+            if (data.match_id) {
+                window.location.href = "/duels/duel-room/" + data.match_id + "/";
+            }
+        });
+}
+
+setInterval(checkMatch, 1000);
+
+</script>
+</body>
+</html>

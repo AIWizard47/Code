@@ -1,0 +1,23 @@
+
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>No Match Found</title>
+</head>
+<body>
+<div class="container">
+  <h2>Duel Result 🏆</h2>
+
+  <p><b>Winner:</b> {{ winner.username }}</p>
+  <p><b>Loser:</b> {{ loser.username }}</p>
+  <p><b>Rating Change:</b> {{ rating_change }}</p>
+
+  {% if request.user == loser %}
+    <a href="{% url 'request_revenge' match.id %}" class="btn btn-danger">Request Revenge 🔁</a>
+  {% endif %}
+
+  <a href="{% url 'find_match' %}" class="btn btn-primary">Find New Match</a>
+</div>
+</body>
+</html>
