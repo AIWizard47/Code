@@ -35,21 +35,21 @@ def submit_code(request):
         try:
             for idx, test_case in enumerate(problem.test_cases.all()):
                                 # Call sandbox microservice
-                response = requests.post("https://sandbox-production-ed09.up.railway.app/run/", json={
-                    "code": code,
-                    "language": language,
-                    "input": test_case.input_data
-                }, timeout=10)
+                # response = requests.post("https://sandbox-production-ed09.up.railway.app/run/", json={
+                #     "code": code,
+                #     "language": language,
+                #     "input": test_case.input_data
+                # }, timeout=10)
 
-                if response.status_code != 200:
-                    verdict = "Sandbox Error"
-                    error = response.text
-                    break
+                # if response.status_code != 200:
+                #     verdict = "Sandbox Error"
+                #     error = response.text
+                #     break
 
-                result = response.json()
-                stdout = result.get("output", "")
-                stderr = result.get("error", "")
-                # stdout, stderr = run_code(code, language, test_case.input_data)
+                # result = response.json()
+                # stdout = result.get("output", "")
+                # stderr = result.get("error", "")
+                stdout, stderr = run_code(code, language, test_case.input_data)
                 # print(result)
                 def normalize_output(output):
                     lines = output.strip().replace('\r\n', '\n').split('\n')
@@ -136,21 +136,21 @@ def run(request):
                                 # Call sandbox microservice
                 if not test_case.is_sample:
                     continue
-                response = requests.post("https://sandbox-production-ed09.up.railway.app/run/", json={
-                    "code": code,
-                    "language": language,
-                    "input": test_case.input_data
-                }, timeout=10)
+                # response = requests.post("https://sandbox-production-ed09.up.railway.app/run/", json={
+                #     "code": code,
+                #     "language": language,
+                #     "input": test_case.input_data
+                # }, timeout=10)
 
-                if response.status_code != 200:
-                    verdict = "Sandbox Error"
-                    error = response.text
-                    break
+                # if response.status_code != 200:
+                #     verdict = "Sandbox Error"
+                #     error = response.text
+                #     break
 
-                result = response.json()
-                stdout = result.get("output", "")
-                stderr = result.get("error", "")
-                # stdout, stderr = run_code(code, language, test_case.input_data)
+                # result = response.json()
+                # stdout = result.get("output", "")
+                # stderr = result.get("error", "")
+                stdout, stderr = run_code(code, language, test_case.input_data)
                 # print(result)
                 def normalize_output(output):
                     lines = output.strip().replace('\r\n', '\n').split('\n')
@@ -400,12 +400,12 @@ def submission_history(request):
     page_obj = paginator.get_page(page_number)
     if User.is_authenticated:
         total_submissions = submissions.count()
-        
+
         accepted_count = submissions.filter(verdict='Accepted').count()
     else:
         total_submissions = 0
         accepted_count = 0
-    
+
     percent_accepted = int(accepted_count / total_submissions * 100) if total_submissions > 0 else 0
     return render(request, 'submissions/history.html', {
         'submissions': page_obj,
@@ -431,7 +431,7 @@ def leaderboard(request):
     paginator = Paginator(users, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    
+
     user_count = users.count()
     if request.user.is_authenticated:
         user_rank = users.filter(solved_count__gt=users.get(id=request.user.id).solved_count).count() + 1
@@ -441,7 +441,7 @@ def leaderboard(request):
     else:
         top_percent = 0
         user_rank = 0
-        
+
     # if request.htmx:  # If request comes from HTMX, return only the table
     #     return render(request, "submissions/partials/leaderboard_table.html", {
     #         "users": page_obj,
