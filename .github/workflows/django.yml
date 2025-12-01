@@ -2,9 +2,9 @@ name: Django CI & Auto Deploy
 
 on:
   push:
-    branches: [ "main/project_maker" ]
+    branches: [ "main" ]
   pull_request:
-    branches: [ "main/project_maker" ]
+    branches: [ "main" ]
 
 jobs:
   build:
