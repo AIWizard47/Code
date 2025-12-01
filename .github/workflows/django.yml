@@ -79,9 +79,9 @@ jobs:
           unzip -o code-main.zip -d code-main/
 
           # (Optional) Install requirements if needed
-          # cd code-main/
+          cd code-main/
           # source venv/bin/activate
-          # pip install -r requirements.txt
+          pip install -r requirements.txt
 
           # Restart your Django service
-          sudo systemctl restart <YOUR_SERVICE_NAME>
+          # sudo systemctl restart <YOUR_SERVICE_NAME>
