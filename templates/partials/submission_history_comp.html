@@ -1,0 +1,141 @@
+<!-- Table View -->
+<div class="submissions-table-container" id="tableView">
+    <table class="submissions-table">
+        <thead>
+            <tr>
+                <th style="width: 35%;">Problem</th>
+                <th style="width: 20%;">Verdict</th>
+                <th style="width: 20%;">Submitted At</th>
+                <th style="width: 25%;">Actions</th>
+            </tr>
+        </thead>
+        <tbody id="submissionTableBody">
+            {% for submission in submissions %}
+            <tr>
+                <td>
+                    <a href="{% url 'problem_detail' submission.problem.slug %}" class="problem-title-cell">{{ submission.problem.title }}</a>
+                    <div style="color: #888; font-size: 0.9rem; margin-top: 0.25rem;">
+                        Problem #{{ submission.problem.id }}
+                    </div>
+                </td>
+                <td>
+                    <span class="verdict-badge
+                        {% if submission.verdict == 'Accepted' %}verdict-accepted
+                        {% elif submission.verdict == 'Wrong Answer' %}verdict-wrong
+                        {% elif submission.verdict == 'Runtime Error' %}verdict-runtime-error
+                        {% elif submission.verdict == 'Time Limit Exceeded' %}verdict-tle
+                        {% else %}verdict-other
+                        {% endif %}">
+                        {{ submission.verdict }}
+                    </span>
+                </td>
+                <td style="color: #c0c0c0;">
+                    {{ submission.created_at|date:"M j, Y" }}<br>
+                    <span style="color: #888; font-size: 0.8rem;">{{ submission.created_at|time:"g:i A" }}</span>
+                </td>
+                <td class="actions-cell">
+                    <button
+                        onclick="showSubmissionDetails(
+                            `{{ submission.code|escapejs }}`,
+                            `{{ submission.output|default:''|escapejs }}`,
+                            `{{ submission.error|default:''|escapejs }}`,
+                            '{{ submission.problem.title|escapejs }}',
+                            '{{ submission.verdict|escapejs }}',
+                            '{{ submission.created_at|escapejs }}'
+                        )"
+                        class="view-details-btn"
+                    >
+                        View Details
+                    </button>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" class="empty-state">
+                    <div class="empty-state-icon">📝</div>
+                    <h3>No Submissions Found</h3>
+                    <p>You haven't made any submissions yet.<br>Start solving problems to see your submission history!</p>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Grid View -->
+<div class="submissions-grid" id="gridView">
+    {% for submission in submissions %}
+    <div class="submission-card">
+        <div class="submission-card-header">
+            <div>
+                <h3 class="submission-card-title">{{ submission.problem.title }}</h3>
+                <div class="submission-card-time">{{ submission.created_at|date:"M j, Y g:i A" }}</div>
+            </div>
+            <span class="verdict-badge
+                {% if submission.verdict == 'Accepted' %}verdict-accepted
+                {% elif submission.verdict == 'Wrong Answer' %}verdict-wrong
+                {% elif submission.verdict == 'Runtime Error' %}verdict-runtime-error
+                {% elif submission.verdict == 'Time Limit Exceeded' %}verdict-tle
+                {% else %}verdict-other
+                {% endif %}">
+                {{ submission.verdict }}
+            </span>
+        </div>
+        <div class="submission-card-meta">
+            <p style="color: #c0c0c0; margin-bottom: 0.5rem;">Problem #{{ submission.problem.id }}</p>
+            <p style="color: #888; font-size: 0.9rem;">
+                {% if submission.language %}Language: {{ submission.language }}{% endif %}
+            </p>
+        </div>
+        <div class="submission-card-actions">
+            <button
+                onclick="showSubmissionDetails(
+                    `{{ submission.code|escapejs }}`,
+                    `{{ submission.output|default:''|escapejs }}`,
+                    `{{ submission.error|default:''|escapejs }}`,
+                    '{{ submission.problem.title|escapejs }}',
+                    '{{ submission.verdict|escapejs }}',
+                    '{{ submission.created_at|escapejs }}'
+                )"
+                class="view-details-btn"
+            >
+                View Details
+            </button>
+        </div>
+    </div>
+    {% empty %}
+    <div class="empty-state" style="grid-column: 1 / -1;">
+        <div class="empty-state-icon">📝</div>
+        <h3>No Submissions Found</h3>
+        <p>You haven't made any submissions yet.<br>Start solving problems to see your submission history!</p>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Pagination (if needed) -->
+<div class="pagination-container">
+    <div class="pagination-info">
+        Showing {{ submissions.start_index }}-{{ submissions.end_index }} of {{ submissions.paginator.count }} submissions
+    </div>
+    <div class="pagination-controls">
+        {% if submissions.has_previous %}
+            <button 
+                hx-get="?page={{ submissions.previous_page_number }}"
+                hx-target="#submission-history-area"
+                hx-swap="innerHTML">
+                ← Previous
+            </button>
+        {% endif %}
+
+        <span>Page {{ submissions.number }} of {{ submissions.paginator.num_pages }}</span>
+
+        {% if submissions.has_next %}
+            <button
+                hx-get="?page={{ submissions.next_page_number }}"
+                hx-target="#submission-history-area"
+                hx-swap="innerHTML">
+                Next →
+            </button>
+        {% endif %}
+    </div>
+</div>

@@ -1,0 +1,50 @@
+<div id="submission-list">
+    {% for sub in submission_history %}
+        <div class="submission-card">
+            <p><strong>Time:</strong> {{ sub.created_at|date:"M d, Y H:i" }}</p>
+            <p><strong>Language:</strong> {{ sub.language|title }}</p>
+            <p>
+                <strong>Verdict:</strong>
+                <span class="
+                    {% if sub.verdict == 'Accepted' %}verdict-accepted
+                    {% elif sub.verdict in 'Wrong Answer,Time Limit Exceeded,Memory Limit Exceeded,Runtime Error' %}verdict-wrong
+                    {% else %}verdict-other
+                    {% endif %}
+                ">{{ sub.verdict }}</span>
+            </p>
+            <p><strong>Runtime:</strong> {{ sub.runtime|default:"N/A" }} ms</p>
+        </div>
+    {% empty %}
+        <p class="section-content">No submissions yet.</p>
+    {% endfor %}
+</div>
+
+{% if submission_history.has_other_pages %}
+<div style="display: flex; justify-content: center; gap: 10px; margin-top: 18px;">
+
+    {% if submission_history.has_previous %}
+    <button
+        class="nav-link"
+        hx-get="?page={{ submission_history.previous_page_number }}"
+        hx-target="#submission-area"
+        hx-swap="innerHTML">
+        Previous
+    </button>
+    {% endif %}
+
+    <span style="color: #8b949e; font-size: 14px;">
+        Page {{ submission_history.number }} of {{ submission_history.paginator.num_pages }}
+    </span>
+
+    {% if submission_history.has_next %}
+    <button
+        class="nav-link"
+        hx-get="?page={{ submission_history.next_page_number }}"
+        hx-target="#submission-area"
+        hx-swap="innerHTML">
+        Next
+    </button>
+    {% endif %}
+
+</div>
+{% endif %}

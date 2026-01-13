@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Let'sCode - {{ problem.title }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+
     <style>
         * {
             box-sizing: border-box;
@@ -409,36 +411,10 @@
 
             <div id="submissions-content" class="content" style="display: none;">
                 <div class="problem-title">Your Submissions</div>
-                {% for sub in submission_history %}
-                    <div class="submission-card">
-                        <p><strong>Time:</strong> {{ sub.created_at|date:"M d, Y H:i" }}</p>
-                        <p><strong>Language:</strong> {{ sub.language|title }}</p>
-                        <p>
-                            <strong>Verdict:</strong> 
-                            <span class="
-                                {% if sub.verdict == 'Accepted' %}verdict-accepted
-                                {% elif sub.verdict in 'Wrong Answer,Time Limit Exceeded,Memory Limit Exceeded,Runtime Error' %}verdict-wrong
-                                {% else %}verdict-other
-                                {% endif %}
-                            ">{{ sub.verdict }}</span>
-                        </p>
-                        <p><strong>Runtime:</strong> {{ sub.runtime|default:"N/A" }} ms</p>
-                    </div>
-                {% empty %}
-                    <p class="section-content">No submissions yet.</p>
-                {% endfor %}
 
-                {% if submission_history.has_other_pages %}
-                <div style="display: flex; justify-content: center; gap: 10px; margin-top: 18px;">
-                    {% if submission_history.has_previous %}
-                    <a href="?page={{ submission_history.previous_page_number }}" class="nav-link">Previous</a>
-                    {% endif %}
-                    <span style="color: #8b949e; font-size: 14px;">Page {{ submission_history.number }} of {{ submission_history.paginator.num_pages }}</span>
-                    {% if submission_history.has_next %}
-                    <a href="?page={{ submission_history.next_page_number }}" class="nav-link">Next</a>
-                    {% endif %}
-                </div>
-                {% endif %}
+                    <div id="submission-area">
+                        {% include "partials/submission_items.html" %}
+                    </div>
             </div>
         </div>
 

@@ -394,24 +394,38 @@ def submit_contest_code(request):
 
 @login_required
 def submission_history(request):
-    submissions = Submission.objects.filter(user=request.user).order_by('-created_at')
-    paginator = Paginator(submissions, 6)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-    if User.is_authenticated:
-        total_submissions = submissions.count()
+    try:
+        submissions = Submission.objects.filter(user=request.user).order_by('-created_at')
+        paginator = Paginator(submissions, 6)
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+        if User.is_authenticated:
+            total_submissions = submissions.count()
 
-        accepted_count = submissions.filter(verdict='Accepted').count()
-    else:
-        total_submissions = 0
-        accepted_count = 0
+            accepted_count = submissions.filter(verdict='Accepted').count()
+        else:
+            total_submissions = 0
+            accepted_count = 0
 
-    percent_accepted = int(accepted_count / total_submissions * 100) if total_submissions > 0 else 0
-    return render(request, 'submissions/history.html', {
-        'submissions': page_obj,
-        'total_submissions': total_submissions,
-        'accepted_count': accepted_count,
-        'percent_accepted': percent_accepted,
+        percent_accepted = int(accepted_count / total_submissions * 100) if total_submissions > 0 else 0
+        
+        if request.headers.get("HX-Request"):
+            print("Working!!!")
+            return render(
+                request,
+                "partials/submission_history_comp.html",
+                {"submissions": page_obj},
+            )
+        
+        return render(request, 'submissions/history.html', {
+            'submissions': page_obj,
+            'total_submissions': total_submissions,
+            'accepted_count': accepted_count,
+            'percent_accepted': percent_accepted,
+            })
+    except Exception as e:
+        return render(request, 'submissions/history.html', {
+            'error': str(e),
         })
 
 #for problem detail view

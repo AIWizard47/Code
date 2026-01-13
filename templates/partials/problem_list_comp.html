@@ -1,0 +1,122 @@
+<!-- Table View -->
+<div class="problems-table-container" id="tableView">
+    <table class="problems-table">
+        <thead>
+            <tr>
+                <th style="width: 40%;">Problem</th>
+                <th style="width: 15%;">Difficulty</th>
+                <th style="width: 35%;">Tags</th>
+                <th style="width: 10%;">Status</th>
+            </tr>
+        </thead>
+        <tbody id="problemTableBody">
+            {% for problem in problems %}
+            <tr onclick="window.location.href='{% url 'problem_detail' problem.slug %}';" style="cursor: pointer;">
+                <td>
+                    <div class="problem-title-cell">{{ problem.title }}</div>
+                    <div style="color: #888; font-size: 0.9rem; margin-top: 0.25rem;">
+                        {{ problem.short_description|default:"A challenging problem to test your coding skills." }}
+                    </div>
+                </td>
+                <td class="difficulty-cell">
+                    <span class="difficulty-badge
+                        {% if problem.difficulty == 'Easy' %}difficulty-easy
+                        {% elif problem.difficulty == 'Medium' %}difficulty-medium
+                        {% elif problem.difficulty == 'Hard' %}difficulty-hard
+                        {% else %}difficulty-other
+                        {% endif %}">
+                        {{ problem.difficulty }}
+                    </span>
+                </td>
+                <td class="tags-cell">
+                    {% for tag in problem.tags.all %}
+                        <span class="tag-badge">{{ tag.name }}</span>
+                    {% endfor %}
+                </td>
+                <td style="text-align: center; color: #888;">
+                    {% if problem.id in problem_isSolved %}
+                        ✅ Solved
+                    {% else %}
+                        ❌ Not Solved
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" class="empty-state">
+                    <div class="empty-state-icon">🔍</div>
+                    <h3>No Problems Found</h3>
+                    <p>No problems match your current filter criteria.<br>Try adjusting your search or filters.</p>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Grid View -->
+<div class="problems-grid" id="gridView">
+    {% for problem in problems %}
+    <a href="{% url 'problem_detail' problem.slug %}" class="problem-card">
+        <h3 class="problem-card-title">{{ problem.title }}</h3>
+        <div class="problem-card-meta">
+            <span class="difficulty-badge
+                {% if problem.difficulty == 'Easy' %}difficulty-easy
+                {% elif problem.difficulty == 'Medium' %}difficulty-medium
+                {% elif problem.difficulty == 'Hard' %}difficulty-hard
+                {% else %}difficulty-other
+                {% endif %}">
+                {{ problem.difficulty }}
+            </span>
+            <span style="color: #888; font-size: 0.9rem;">
+                    {% if problem.id in problem_isSolved %}
+                        ✅ Solved
+                    {% else %}
+                        ❌ Not Solved
+                    {% endif %}
+            </span>
+        </div>
+        <p class="problem-card-description">
+            {{ problem.short_description|default:"A challenging problem to test your coding skills." }}
+        </p>
+        <div class="problem-card-tags">
+            {% for tag in problem.tags.all %}
+                <span class="tag-badge">{{ tag.name }}</span>
+            {% endfor %}
+        </div>
+    </a>
+    {% empty %}
+    <div class="empty-state" style="grid-column: 1 / -1;">
+        <div class="empty-state-icon">🔍</div>
+        <h3>No Problems Found</h3>
+        <p>No problems match your current filter criteria.<br>Try adjusting your search or filters.</p>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Pagination -->
+<div class="pagination-container">
+    <div class="pagination-info">
+        Showing {{ problems.start_index }}-{{ problems.end_index }} of {{ problems.paginator.count }} problems
+    </div>
+    <div class="pagination-controls">
+        {% if problems.has_previous %}
+            <button hx-get="?page={{ problems.previous_page_number }}{% if selected_tag %}&tag={{ selected_tag }}{% endif %}{% if selected_difficulty %}&difficulty={{ selected_difficulty }}{% endif %}{% if selected_search %}&search={{ selected_search }}{% endif %}"
+                hx-target="#problem-list-area"
+                hx-swap="innerHTML">
+                    ← Previous
+            </button>
+        {% endif %}
+
+        <span>Page {{ problems.number }} of {{ problems.paginator.num_pages }}</span>
+
+        {% if problems.has_next %}
+            <button
+                hx-get="?page={{ problems.next_page_number }}{% if selected_tag %}&tag={{ selected_tag }}{% endif %}{% if selected_difficulty %}&difficulty={{ selected_difficulty }}{% endif %}{% if selected_search %}&search={{ selected_search }}{% endif %}"
+                hx-target="#problem-list-area"
+                hx-swap="innerHTML">
+                    Next →
+            </button>
+        {% endif %}
+    </div>
+</div>

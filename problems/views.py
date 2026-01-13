@@ -17,7 +17,7 @@ import requests
 def problem_list(request):
     tag_name = request.GET.get('tag')
     difficulty = request.GET.get('difficulty')
-
+    search_query = request.GET.get('search', '')
     problems = Problem.objects.all().order_by('id')
     ai_source_problem = Problem.objects.filter(is_ai_source=True).first()
     problem_variant = ProblemVariant.objects.filter(generated_by=request.user).first()
@@ -36,7 +36,10 @@ def problem_list(request):
         problems = problems.filter(difficulty=difficulty)
 
     tags = Tag.objects.all()
-
+    if search_query:
+        # Option A: Simple search (just checks the title)
+        problems = problems.filter(title__icontains=search_query)
+        # print("Search Query:", search_query,problems)
     # Pagination (3 problems per page for testing; you can change it to 10/20 later)
     paginator = Paginator(problems, 6)
     page_number = request.GET.get('page')
@@ -52,7 +55,19 @@ def problem_list(request):
         problem_isSolved = set(Submission.objects.filter(user=request.user, verdict='Accepted').values_list("problem_id", flat=True))
     else:
         problem_isSolved = set()
-
+    if request.headers.get("HX-Request"):
+        print("Working!!!")
+        return render(
+            request,
+            "partials/problem_list_comp.html",
+            {
+                "problems": page_obj,
+                'selected_tag': tag_name,
+                'selected_difficulty': difficulty,
+                'tags': tags,
+                'problem_isSolved' :problem_isSolved,
+            },
+        )
     return render(request, 'problems/problem_list.html', {
         'problems': page_obj,   # renamed to page_obj (Django convention)
         'tags': tags,
@@ -86,11 +101,18 @@ def problem_detail(request, slug):
         submission_history = Submission.objects.none()
 
     paginator = Paginator(submission_history, 4)
-    page_number = request.GET.get('page')
+    page_number = request.GET.get('page',1)
     page_obj = paginator.get_page(page_number)
 
     problem_solutions = ProblemSolution.objects.filter(problem=problem).first()
     problem_code = problem_solutions.code if problem_solutions else "No solutions available."
+    if request.headers.get("HX-Request"):
+        print("Working!!!")
+        return render(
+            request,
+            "partials/submission_items.html",
+            {"submission_history": page_obj},
+        )
 
     return render(request, 'problems/problem_detail.html', {
         'problem': problem,
@@ -317,7 +339,7 @@ def generate_problem_variation(request):
         try:
             variation_data = json.loads(cleaned_text)
         except json.JSONDecodeError:
-            print("AI did not return valid JSON. Raw:", ai_text)
+            # print("AI did not return valid JSON. Raw:", ai_text)
             variation_data = {
                 "title": f"Variation of {problem.title}",
                 "description": f"Alternate: {problem.description}",
@@ -327,13 +349,13 @@ def generate_problem_variation(request):
         variation_description = variation_data.get("description", problem.description)
 
     except Exception as e:
-        print("Gemini API Error:", e)
+        # print("Gemini API Error:", e)
         variation_title = f"Variation of {problem.title}"
         variation_description = f"Alternate storyline: {problem.description}"
 
 
     except Exception as e:
-        print("Gemini API Error:", e)
+        # print("Gemini API Error:", e)
         variation_title = f"Variation of {problem.title}"
         variation_description = f"Alternate storyline: {problem.description}"
 
