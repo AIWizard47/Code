@@ -751,6 +751,7 @@
                 <div class="user-actions">
                     {% if user.is_authenticated %}
                         <span>Welcome, {{ user.username }}</span>
+                        <a href="{% url 'user_profile' username=user.username %}">Profile</a>
                         <a href="/problems/logout/">Logout</a>
                     {% else %}
                         <a href="/accounts/login/">Login</a>

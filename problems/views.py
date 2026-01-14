@@ -15,72 +15,79 @@ from django.conf import settings
 import requests
 
 def problem_list(request):
-    tag_name = request.GET.get('tag')
-    difficulty = request.GET.get('difficulty')
-    search_query = request.GET.get('search', '')
-    problems = Problem.objects.all().order_by('id')
-    ai_source_problem = Problem.objects.filter(is_ai_source=True).first()
-    problem_variant = ProblemVariant.objects.filter(generated_by=request.user).first()
+    try:
+        tag_name = request.GET.get('tag')
+        difficulty = request.GET.get('difficulty')
+        search_query = request.GET.get('search', '')
+        problems = Problem.objects.all().order_by('id')
+        ai_source_problem = Problem.objects.filter(is_ai_source=True).first()
+        if request.user.is_authenticated:
+            problem_variant = ProblemVariant.objects.filter(generated_by=request.user).first()
+        else:
+            problem_variant = None
+        if problem_variant is not None:
+            generated_user = problem_variant.generated_by
+        else:
+            generated_user = None
 
-    if problem_variant is not None:
-        generated_user = problem_variant.generated_by
-    else:
-        generated_user = None
+        # filter by tag
+        if tag_name:
+            problems = problems.filter(tags__name=tag_name)
 
-    # filter by tag
-    if tag_name:
-        problems = problems.filter(tags__name=tag_name)
+        # filter by difficulty
+        if difficulty:
+            problems = problems.filter(difficulty=difficulty)
 
-    # filter by difficulty
-    if difficulty:
-        problems = problems.filter(difficulty=difficulty)
-
-    tags = Tag.objects.all()
-    if search_query:
-        # Option A: Simple search (just checks the title)
-        problems = problems.filter(title__icontains=search_query)
-        # print("Search Query:", search_query,problems)
-    # Pagination (3 problems per page for testing; you can change it to 10/20 later)
-    paginator = Paginator(problems, 6)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-    problem_total_count = problems.count()
-    if request.user.is_authenticated:
-        # Count the number of problems solved by the user
-        solved_count = Submission.objects.filter(user=request.user, verdict='Accepted').values('problem_id').distinct().count()
-    else:
-        solved_count = 0
-    progress = int((solved_count / problem_total_count) * 100) if problem_total_count > 0 else 0
-    if request.user.is_authenticated:
-        problem_isSolved = set(Submission.objects.filter(user=request.user, verdict='Accepted').values_list("problem_id", flat=True))
-    else:
-        problem_isSolved = set()
-    if request.headers.get("HX-Request"):
-        print("Working!!!")
-        return render(
-            request,
-            "partials/problem_list_comp.html",
-            {
-                "problems": page_obj,
-                'selected_tag': tag_name,
-                'selected_difficulty': difficulty,
-                'tags': tags,
-                'problem_isSolved' :problem_isSolved,
-            },
-        )
-    return render(request, 'problems/problem_list.html', {
-        'problems': page_obj,   # renamed to page_obj (Django convention)
-        'tags': tags,
-        'selected_tag': tag_name,
-        'selected_difficulty': difficulty,
-        'solved_count' :solved_count,
-        'problem_total_count': problem_total_count,
-        'progress': progress,
-        'problem_isSolved' :problem_isSolved,
-        'ai_source_problem': ai_source_problem,
-        'problem_variant': problem_variant,
-    })
-
+        tags = Tag.objects.all()
+        if search_query:
+            # Option A: Simple search (just checks the title)
+            problems = problems.filter(title__icontains=search_query)
+            # print("Search Query:", search_query,problems)
+        # Pagination (3 problems per page for testing; you can change it to 10/20 later)
+        paginator = Paginator(problems, 6)
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+        problem_total_count = problems.count()
+        if request.user.is_authenticated:
+            # Count the number of problems solved by the user
+            solved_count = Submission.objects.filter(user=request.user, verdict='Accepted').values('problem_id').distinct().count()
+        else:
+            solved_count = 0
+        progress = int((solved_count / problem_total_count) * 100) if problem_total_count > 0 else 0
+        if request.user.is_authenticated:
+            problem_isSolved = set(Submission.objects.filter(user=request.user, verdict='Accepted').values_list("problem_id", flat=True))
+        else:
+            problem_isSolved = set()
+        if request.headers.get("HX-Request"):
+            print("Working!!!")
+            return render(
+                request,
+                "partials/problem_list_comp.html",
+                {
+                    "problems": page_obj,
+                    'selected_tag': tag_name,
+                    'selected_difficulty': difficulty,
+                    'tags': tags,
+                    'problem_isSolved' :problem_isSolved,
+                },
+            )
+        return render(request, 'problems/problem_list.html', {
+            'problems': page_obj,   # renamed to page_obj (Django convention)
+            'tags': tags,
+            'selected_tag': tag_name,
+            'selected_difficulty': difficulty,
+            'solved_count' :solved_count,
+            'problem_total_count': problem_total_count,
+            'progress': progress,
+            'problem_isSolved' :problem_isSolved,
+            'ai_source_problem': ai_source_problem,
+            'problem_variant': problem_variant,
+        })
+    except Exception as e:
+        print("Error in problem_list view:", e)
+        return render(request, 'problems/problem_list.html', {
+            'problems': page_obj,
+        })
 
 # @login_required
 def problem_detail(request, slug):

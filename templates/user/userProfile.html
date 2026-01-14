@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - Let'sCode</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #0d1117;
+            color: #c9d1d9;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e1e1e;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #4a4a4a;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #666;
+        }
+
+        .header {
+            padding: 16px 24px;
+            background: linear-gradient(135deg, #161b22 0%, #1a1f2e 100%);
+            border-bottom: 1px solid #30363d;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            right: 0;
+            height: 10px;
+            background: linear-gradient(to bottom, rgba(13, 17, 23, 0.8), transparent);
+            pointer-events: none;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            font-size: 18px;
+            color: #c9d1d9;
+        }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #58a6ff 0%, #9d4edd 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: 700;
+            color: white;
+            box-shadow: 0 4px 8px rgba(88, 166, 255, 0.3);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .nav-link {
+            color: #8b949e;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 6px;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .nav-link:hover {
+            color: #c9d1d9;
+            background: rgba(88, 166, 255, 0.1);
+        }
+
+        .nav-link.active {
+            color: #58a6ff;
+            background: rgba(88, 166, 255, 0.15);
+        }
+
+        .nav-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: -16px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 30px;
+            height: 3px;
+            background: linear-gradient(90deg, #58a6ff 0%, #9d4edd 100%);
+            border-radius: 2px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+
+        .profile-header {
+            background: linear-gradient(135deg, #161b22 0%, #1a1f2e 100%);
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .profile-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(88, 166, 255, 0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #58a6ff 0%, #9d4edd 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            font-weight: 700;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .profile-info h1 {
+            font-size: 28px;
+            font-weight: 600;
+            margin: 0 0 8px 0;
+            color: #c9d1d9;
+        }
+
+        .profile-meta {
+            display: flex;
+            gap: 20px;
+            color: #8b949e;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+
+        .profile-stats {
+            display: flex;
+            gap: 24px;
+            margin-top: 16px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #58a6ff;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: #8b949e;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 4px;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .card {
+            background: linear-gradient(135deg, #161b22 0%, #1a1f2e 100%);
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(135deg, #58a6ff22 0%, #9d4edd22 100%);
+            border-radius: 12px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: -1;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .card:hover::before {
+            opacity: 1;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin: 0 0 20px 0;
+            color: #c9d1d9;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #21262d;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #58a6ff 0%, #9d4edd 100%);
+            transition: width 0.3s ease;
+        }
+
+        .difficulty-stats {
+            display: flex;
+            gap: 16px;
+            margin-top: 20px;
+        }
+
+        .diff-item {
+            flex: 1;
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .diff-count {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .diff-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .diff-easy { color: #3fb950; }
+        .diff-medium { color: #d29922; }
+        .diff-hard { color: #f85149; }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+            margin-top: 16px;
+        }
+
+        .calendar-day {
+            aspect-ratio: 1;
+            border-radius: 3px;
+            background: #21262d;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .calendar-day.active-1 { background: #0e4429; color: #3fb950; }
+        .calendar-day.active-2 { background: #006d32; color: #3fb950; }
+        .calendar-day.active-3 { background: #26a641; color: white; }
+        .calendar-day.active-4 { background: #39d353; color: white; }
+
+        .activity-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            transition: all 0.2s;
+        }
+
+        .activity-item:hover {
+            background: #161b22;
+            border-color: #58a6ff;
+        }
+
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 6px;
+            background: #21262d;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .activity-icon.success {
+            background: #1a7f3722;
+            color: #3fb950;
+        }
+
+        .activity-icon.failed {
+            background: #f8514922;
+            color: #f85149;
+        }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-title {
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .activity-meta {
+            font-size: 12px;
+            color: #8b949e;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: #21262d;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            font-size: 13px;
+            margin-right: 8px;
+            margin-bottom: 8px;
+        }
+
+        .badge-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+        }
+
+        .badge-gold { background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%); }
+        .badge-silver { background: linear-gradient(135deg, #c0c0c0 0%, #e8e8e8 100%); }
+        .badge-bronze { background: linear-gradient(135deg, #cd7f32 0%, #e8a87c 100%); }
+
+        .streak-display {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(135deg, #58a6ff22 0%, #9d4edd22 100%);
+            border: 1px solid #58a6ff;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+
+        .streak-number {
+            font-size: 48px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #58a6ff 0%, #9d4edd 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .streak-label {
+            font-size: 14px;
+            color: #8b949e;
+            margin-top: 8px;
+        }
+
+        .btn {
+            padding: 8px 18px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-primary {
+            background: #238636;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2ea043;
+        }
+
+        .btn-secondary {
+            background: #21262d;
+            color: #c9d1d9;
+            border: 1px solid #30363d;
+        }
+
+        .btn-secondary:hover {
+            background: #30363d;
+        }
+
+        @media (max-width: 768px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+            
+            .profile-header {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .profile-stats {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="logo">
+            <div class="logo-icon">&lt;/&gt;</div>
+            <span>Let'sCode</span>
+        </div>
+        <div class="nav-links">
+            <a href="/problems/" class="nav-link">Problems</a>
+            <a href="/submissions/history/" class="nav-link">Submissions</a>
+            <a href="{% url 'user_profile' username=user.username %}" class="nav-link active">Profile</a>
+            <a href="/logout/" class="nav-link">Logout</a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Profile Header -->
+        <div class="profile-header">
+            <div class="avatar">{{ user_url.username.0|upper }}{{ user_url.username.1|upper }}</div>
+            <div class="profile-info" style="flex: 1;">
+                <h1>{{ user_url.username|default:"CodeMaster" }}</h1>
+                <div class="profile-meta">
+                    <span>📍 {{ user_url.location|default:"Unknown" }}</span>
+                    <span>🎓 {{ user_url.rank|default:"Beginner" }}</span>
+                    <span>📅 Joined {{ user.date_joined|date:"M Y"|default:"Jan 2024" }}</span>
+                </div>
+                <div class="profile-stats">
+                    <div class="stat-item">
+                        <div class="stat-value">{{ total_solved|default:"0" }}</div>
+                        <div class="stat-label">Solved</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">{{ total_submissions|default:"0" }}</div>
+                        <div class="stat-label">Submissions</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">{{ acceptance_rate|default:"0" }}%</div>
+                        <div class="stat-label">Acceptance</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">{{ user_rank|default:"--" }}</div>
+                        <div class="stat-label">Rank</div>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <button class="btn btn-secondary">Edit Profile</button>
+            </div>
+        </div>
+
+        <!-- Grid Layout -->
+        <div class="grid-2">
+            <!-- Progress Card -->
+            <div class="card">
+                <h2 class="card-title">
+                    Progress
+                    <span style="font-size: 14px; color: #8b949e; font-weight: 400;">
+                        {{ total_solved|default:"0" }}/{{ total_problems|default:"500" }} Problems
+                    </span>
+                </h2>
+                
+                <div class="difficulty-stats">
+                    <div class="diff-item">
+                        <div class="diff-count diff-easy">{{ easy_solved|default:"0" }}</div>
+                        <div class="diff-label diff-easy">Easy</div>
+                        <div class="progress-bar" style="margin-top: 8px;">
+                            <div class="progress-fill" style="width: {{ easy_percentage|default:"0" }}%; background: #3fb950;"></div>
+                        </div>
+                    </div>
+                    <div class="diff-item">
+                        <div class="diff-count diff-medium">{{ medium_solved|default:"0" }}</div>
+                        <div class="diff-label diff-medium">Medium</div>
+                        <div class="progress-bar" style="margin-top: 8px;">
+                            <div class="progress-fill" style="width: {{ medium_percentage|default:"0" }}%; background: #d29922;"></div>
+                        </div>
+                    </div>
+                    <div class="diff-item">
+                        <div class="diff-count diff-hard">{{ hard_solved|default:"0" }}</div>
+                        <div class="diff-label diff-hard">Hard</div>
+                        <div class="progress-bar" style="margin-top: 8px;">
+                            <div class="progress-fill" style="width: {{ hard_percentage|default:"0" }}%; background: #f85149;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 24px;">
+                    <div style="font-size: 13px; color: #8b949e; margin-bottom: 8px;">Overall Progress</div>
+                    <div class="progress-bar" style="height: 12px;">
+                        <div class="progress-fill" style="width: {{ overall_percentage|default:"0" }}%;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Daily Streak Card -->
+            <div class="card">
+                <h2 class="card-title">Daily Streak</h2>
+                
+                <div class="streak-display">
+                    <div class="streak-number">{{ current_streak|default:"0" }}</div>
+                    <div class="streak-label">🔥 Day Streak</div>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                    <span style="font-size: 13px; color: #8b949e;">This Week</span>
+                    <span style="font-size: 13px; color: #3fb950;">{{ weekly_activity|default:"0" }} problems</span>
+                </div>
+
+                <div class="calendar-grid">
+                    <!-- Week day labels -->
+                    <div class="calendar-day" style="background: transparent;">S</div>
+                    <div class="calendar-day" style="background: transparent;">M</div>
+                    <div class="calendar-day" style="background: transparent;">T</div>
+                    <div class="calendar-day" style="background: transparent;">W</div>
+                    <div class="calendar-day" style="background: transparent;">T</div>
+                    <div class="calendar-day" style="background: transparent;">F</div>
+                    <div class="calendar-day" style="background: transparent;">S</div>
+                    
+                    <!-- Activity days (example) -->
+                    <div class="calendar-day active-2">2</div>
+                    <div class="calendar-day active-3">3</div>
+                    <div class="calendar-day active-1">1</div>
+                    <div class="calendar-day"></div>
+                    <div class="calendar-day active-4">5</div>
+                    <div class="calendar-day active-2">2</div>
+                    <div class="calendar-day active-1">1</div>
+                </div>
+
+                <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #30363d;">
+                    <div style="display: flex; justify-content: space-between; font-size: 13px;">
+                        <span style="color: #8b949e;">Longest Streak</span>
+                        <span style="color: #c9d1d9; font-weight: 600;">{{ longest_streak|default:"0" }} days</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Full Width Cards -->
+        <div class="grid-2">
+            <!-- Recent Activity -->
+            <div class="card">
+                <h2 class="card-title">Recent Activity</h2>
+                
+                {% for activity in recent_activities %}
+                <div class="activity-item">
+                    <div class="activity-icon {{ activity.status }}">
+                        {% if activity.verdict == 'Accepted' %}
+                        ✓
+                        {% else %}
+                        ✗
+                        {% endif %}
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-title">{{ activity.problem_title }}</div>
+                        <div class="activity-meta">
+                            {{ activity.language|title }} • {{ activity.verdict }} • {{ activity.time_ago }}
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div style="text-align: center; padding: 40px; color: #8b949e;">
+                    No recent activity
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Achievements -->
+            <div class="card">
+                <h2 class="card-title">Achievements</h2>
+                
+                <div style="margin-bottom: 20px;">
+                    <div class="badge">
+                        <span class="badge-icon badge-gold">🏆</span>
+                        <span>First AC</span>
+                    </div>
+                    <div class="badge">
+                        <span class="badge-icon badge-silver">⭐</span>
+                        <span>Week Warrior</span>
+                    </div>
+                    <div class="badge">
+                        <span class="badge-icon badge-bronze">🎯</span>
+                        <span>Problem Solver</span>
+                    </div>
+                    <div class="badge">
+                        <span class="badge-icon" style="background: #58a6ff22; color: #58a6ff;">💯</span>
+                        <span>Century Club</span>
+                    </div>
+                </div>
+
+                <div style="padding: 16px; background: #0d1117; border: 1px solid #30363d; border-radius: 6px;">
+                    <div style="font-size: 13px; color: #8b949e; margin-bottom: 12px;">Languages Used</div>
+                    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                        {% for lang in languages_used %}
+                        <div style="font-size: 13px; color: #c9d1d9;">
+                            <span style="color: #58a6ff;">●</span> {{ lang.name }} ({{ lang.count }})
+                        </div>
+                        {% empty %}
+                        <div style="font-size: 13px; color: #c9d1d9;">
+                            <span style="color: #58a6ff;">●</span> Python3 (45)
+                        </div>
+                        <div style="font-size: 13px; color: #c9d1d9;">
+                            <span style="color: #3fb950;">●</span> C++ (23)
+                        </div>
+                        <div style="font-size: 13px; color: #c9d1d9;">
+                            <span style="color: #d29922;">●</span> Java (12)
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

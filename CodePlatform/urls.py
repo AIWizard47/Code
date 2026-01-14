@@ -16,6 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from users import views
 
 urlpatterns = [
     path('sam/admin/', admin.site.urls),
@@ -27,4 +28,5 @@ urlpatterns = [
     path('accounts/', include('django.contrib.auth.urls')),
     path('account/',include("users.urls")),
     path('duels/', include('players.urls')),  # Added for duels
+    path("profile/<str:username>/", views.user_profile, name="user_profile"),
 ]
