@@ -29,4 +29,6 @@ urlpatterns = [
     path('account/',include("users.urls")),
     path('duels/', include('players.urls')),  # Added for duels
     path("profile/<str:username>/", views.user_profile, name="user_profile"),
+    path('profile-edit/edit-form/', views.profile_edit_form, name='profile_edit_form'),
+    path('profile-edit/edit/', views.profile_edit_save, name='profile_edit_save'),
 ]

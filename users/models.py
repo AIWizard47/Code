@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
 from problems.models import Problem
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 class Role(models.Model):
     name = models.CharField(max_length=50, unique=True)
@@ -27,9 +29,23 @@ class ProblemUploader(models.Model):
     def __str__(self):
         return self.user.username
 
-class UsersProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="user_profile")
-    bio = models.TextField(blank=True)
-    location = models.CharField(max_length=100, blank=True)
-    birth_date = models.DateField(null=True, blank=True)
-#     achievements = models.TextField(blank=True)
+# models.py
+
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='userprofile')
+    location = models.CharField(max_length=100, blank=True, default='Unknown')
+    bio = models.TextField(blank=True, default='')
+    rank = models.CharField(max_length=50, blank=True, default='Beginner')
+    
+    def __str__(self):
+        return f"{self.user.username}'s Profile"
+
+# Auto-create UserProfile when User is created
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        UserProfile.objects.create(user=instance)
+
+@receiver(post_save, sender=User)
+def save_user_profile(sender, instance, **kwargs):
+    instance.userprofile.save()

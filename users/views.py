@@ -8,8 +8,11 @@ import os
 from django.contrib.auth.models import User
 from problems.models import Problem
 from submissions.models import Submission
+from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Q
-from users.models import UsersProfile
+from django.http import HttpResponse
+from django.views.decorators.http import require_http_methods
+from users.models import UserProfile
 # from captcha.fields import ReCaptchaField
 
 
@@ -80,7 +83,6 @@ def register_views(request):
             })
         # Create the user
         user = User.objects.create_user(username=username, email=email, password=password)
-        UsersProfile.objects.create(user=user)
         # Optionally log the user in immediately
         login(request, user)
 
@@ -90,33 +92,39 @@ def register_views(request):
 
 def user_profile(request, username):
     try:
-        user = User.objects.get(username=username)
+        user_url = User.objects.get(username=username)
+        user = request.user
+        if user_url==user:
+            is_own_profile = True
+        else:
+            is_own_profile = False
+        print(user)
         # total_submissions = user.submissions.count()
         # accepted_count = user.submissions.filter(status='Accepted').count()
         # percent_accepted = (accepted_count / total_submissions * 100) if total_submissions > 0 else 0.0
-        total_solved = Submission.objects.filter(user=user, verdict='Accepted').values('problem_id').distinct().count()
-
-        total_submissions = Submission.objects.filter(user=user).count()
+        total_solved = Submission.objects.filter(user=user_url, verdict='Accepted').values('problem_id').distinct().count()
+        user_profile = UserProfile.objects.get(user=user_url)
+        total_submissions = Submission.objects.filter(user=user_url).count()
         if total_submissions > 0:
-            acceptance_rate = (Submission.objects.filter(user=user, verdict='Accepted').count() / total_submissions) * 100
+            acceptance_rate = (Submission.objects.filter(user=user_url, verdict='Accepted').count() / total_submissions) * 100
         else:
             acceptance_rate = 0.0
         acceptance_rate = "{:.2f}".format(acceptance_rate)
         
         easy_solved = Submission.objects.filter(
-            user=user,
+            user=user_url,
             verdict='Accepted',
             problem__difficulty='Easy'
         ).values('problem_id').distinct().count()
 
         medium_solved = Submission.objects.filter(
-            user=user,
+            user=user_url,
             verdict='Accepted',
             problem__difficulty='Medium'
         ).values('problem_id').distinct().count()
 
         hard_solved = Submission.objects.filter(
-            user=user,
+            user=user_url,
             verdict='Accepted',
             problem__difficulty='Hard'
         ).values('problem_id').distinct().count()
@@ -137,11 +145,12 @@ def user_profile(request, username):
             )
             .order_by('-solved_count','date_joined')
         )
-        user_rank = users.filter(solved_count__gt=users.get(id=user.id).solved_count).count() + 1
+        user_rank = users.filter(solved_count__gt=users.get(id=user_url.id).solved_count).count() + 1
 
         return render(request, 'user/userProfile.html', {
-            'user':request.user,
-            'user_url': user,
+            'is_own_profile':is_own_profile,
+            'user_profile': user_profile,
+            'user_url': user_url,
             'total_solved': total_solved,
             'total_submissions': total_submissions,
             'total_problems': total_problems,
@@ -164,3 +173,126 @@ def user_profile(request, username):
         return render(request, 'users/profile.html', {
             'error': 'User does not exist.'
         })
+
+# views.py
+
+@login_required
+@require_http_methods(["GET"])
+def profile_edit_form(request):
+    """Returns the edit profile form modal"""
+    try:
+        # Get or create user profile
+        user_profile, created = UserProfile.objects.get_or_create(
+            user=request.user,
+            defaults={
+                'location': 'Unknown',
+                'bio': '',
+                'rank': 'Beginner'
+            }
+        )
+        
+        # Prepare context data
+        context = {
+            'user_profile': user_profile,
+            'username': request.user.username,
+            'email': request.user.email,
+        }
+        
+        return render(request, 'user/profile_edit_form.html', context)
+        
+    except Exception as e:
+        # Return error modal if something goes wrong
+        return render(request, 'user/profile_edit_error.html', {
+            'error_message': str(e)
+        })
+
+
+@login_required
+@require_http_methods(["POST"])
+def profile_edit_save(request):
+    """Saves the profile edits and returns success message"""
+    try:
+        # Get or create user profile
+        user_profile, created = UserProfile.objects.get_or_create(
+            user=request.user,
+            defaults={
+                'location': 'Unknown',
+                'bio': '',
+                'rank': 'Beginner'
+            }
+        )
+        
+        # Update fields from POST data
+        location = request.POST.get('location', '').strip()
+        bio = request.POST.get('bio', '').strip()
+        
+        # Validate data
+        if len(location) > 100:
+            raise ValueError("Location must be less than 100 characters")
+        
+        if len(bio) > 500:
+            raise ValueError("Bio must be less than 500 characters")
+        
+        # Update profile
+        user_profile.location = location if location else 'Unknown'
+        user_profile.bio = bio
+        user_profile.save()
+        
+        # Return success modal
+        return HttpResponse("""
+            <div class="modal-overlay">
+                <div class="modal">
+                    <div class="modal-header">
+                        <h2 class="modal-title">Success!</h2>
+                        <button class="modal-close" onclick="window.location.reload()">✕</button>
+                    </div>
+                    <div style="padding: 20px; text-align: center;">
+                        <div style="font-size: 48px; margin-bottom: 16px; color: #3fb950;">✓</div>
+                        <p style="font-size: 16px; color: #c9d1d9; margin-bottom: 24px;">Profile updated successfully!</p>
+                        <button class="btn btn-primary" onclick="window.location.reload()">
+                            Refresh Page
+                        </button>
+                    </div>
+                </div>
+            </div>
+        """)
+        
+    except ValueError as e:
+        # Validation error
+        return HttpResponse(f"""
+            <div class="modal-overlay">
+                <div class="modal">
+                    <div class="modal-header">
+                        <h2 class="modal-title">Validation Error</h2>
+                        <button class="modal-close" onclick="document.getElementById('modal-container').innerHTML = ''">✕</button>
+                    </div>
+                    <div style="padding: 20px; text-align: center;">
+                        <div style="font-size: 48px; margin-bottom: 16px; color: #d29922;">⚠</div>
+                        <p style="font-size: 16px; color: #c9d1d9; margin-bottom: 24px;">{str(e)}</p>
+                        <button class="btn btn-secondary" onclick="document.getElementById('modal-container').innerHTML = ''">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+        """, status=400)
+        
+    except Exception as e:
+        # General error
+        return HttpResponse(f"""
+            <div class="modal-overlay">
+                <div class="modal">
+                    <div class="modal-header">
+                        <h2 class="modal-title">Error</h2>
+                        <button class="modal-close" onclick="document.getElementById('modal-container').innerHTML = ''">✕</button>
+                    </div>
+                    <div style="padding: 20px; text-align: center;">
+                        <div style="font-size: 48px; margin-bottom: 16px; color: #f85149;">✗</div>
+                        <p style="font-size: 16px; color: #c9d1d9; margin-bottom: 24px;">Failed to update profile. Please try again.</p>
+                        <button class="btn btn-secondary" onclick="document.getElementById('modal-container').innerHTML = ''">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+        """, status=500)

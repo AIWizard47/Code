@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profile - Let'sCode</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
     <style>
         * {
             box-sizing: border-box;
@@ -459,6 +460,116 @@
             background: #30363d;
         }
 
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            animation: fadeIn 0.2s ease-out;
+        }
+
+        .modal {
+            background: linear-gradient(135deg, #1c2128 0%, #21262d 100%);
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            padding: 32px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            animation: slideUp 0.3s ease-out;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .modal-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #c9d1d9;
+        }
+
+        .modal-close {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            background: #21262d;
+            border: 1px solid #30363d;
+            color: #8b949e;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .modal-close:hover {
+            background: #30363d;
+            color: #c9d1d9;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #8b949e;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 10px 14px;
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            color: #c9d1d9;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #58a6ff;
+            box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.1);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 28px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { 
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
         @media (max-width: 768px) {
             .grid-2 {
                 grid-template-columns: 1fr;
@@ -484,9 +595,14 @@
         </div>
         <div class="nav-links">
             <a href="/problems/" class="nav-link">Problems</a>
-            <a href="/submissions/history/" class="nav-link">Submissions</a>
-            <a href="{% url 'user_profile' username=user.username %}" class="nav-link active">Profile</a>
-            <a href="/logout/" class="nav-link">Logout</a>
+            {% if user.is_authenticated %}
+                <a href="/submissions/history/" class="nav-link">Submissions</a>
+                <a href="{% url 'user_profile' username=user.username %}" class="nav-link active">Profile</a>
+                <a href="/logout/" class="nav-link">Logout</a>
+            {% else %}
+                <a href="/accounts/login/" class="nav-link">Login</a>
+                <a href="/account/registrations/" class="nav-link">SignUp</a>
+            {% endif %}
         </div>
     </div>
 
@@ -498,8 +614,8 @@
             <div class="profile-info" style="flex: 1;">
                 <h1>{{ user_url.username|default:"CodeMaster" }}</h1>
                 <div class="profile-meta">
-                    <span>📍 {{ user_url.location|default:"Unknown" }}</span>
-                    <span>🎓 {{ user_url.rank|default:"Beginner" }}</span>
+                    <span>📍 {{ user_profile.location|default:"Unknown" }}</span>
+                    <span>🎓 {{ user_profile.rank|default:"Beginner" }}</span>
                     <span>📅 Joined {{ user.date_joined|date:"M Y"|default:"Jan 2024" }}</span>
                 </div>
                 <div class="profile-stats">
@@ -519,11 +635,20 @@
                         <div class="stat-value">{{ user_rank|default:"--" }}</div>
                         <div class="stat-label">Rank</div>
                     </div>
+                    
                 </div>
             </div>
+            {% if is_own_profile %}
             <div>
-                <button class="btn btn-secondary">Edit Profile</button>
+                <button 
+                    class="btn btn-secondary" 
+                    hx-get="/profile-edit/edit-form/"
+                    hx-target="#modal-container"
+                    hx-swap="innerHTML">
+                    Edit Profile
+                </button>
             </div>
+            {% endif %}
         </div>
 
         <!-- Grid Layout -->
@@ -584,7 +709,6 @@
                 </div>
 
                 <div class="calendar-grid">
-                    <!-- Week day labels -->
                     <div class="calendar-day" style="background: transparent;">S</div>
                     <div class="calendar-day" style="background: transparent;">M</div>
                     <div class="calendar-day" style="background: transparent;">T</div>
@@ -593,7 +717,6 @@
                     <div class="calendar-day" style="background: transparent;">F</div>
                     <div class="calendar-day" style="background: transparent;">S</div>
                     
-                    <!-- Activity days (example) -->
                     <div class="calendar-day active-2">2</div>
                     <div class="calendar-day active-3">3</div>
                     <div class="calendar-day active-1">1</div>
@@ -687,5 +810,17 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal Container for HTMX -->
+    <div id="modal-container"></div>
+
+    <script>
+        // Close modal when clicking outside
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('modal-overlay')) {
+                document.getElementById('modal-container').innerHTML = '';
+            }
+        });
+    </script>
 </body>
 </html>

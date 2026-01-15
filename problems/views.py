@@ -13,6 +13,8 @@ from django.contrib import messages
 import json
 from django.conf import settings
 import requests
+import os
+from dotenv import load_dotenv
 
 def problem_list(request):
     try:
@@ -257,12 +259,12 @@ def generate_problem_variation(request):
     problem = get_object_or_404(Problem, id=ai_source_problem.id)
 
     # Stop duplicate variants
-    if ProblemVariant.objects.filter(generated_by=request.user).exists():
+    if ProblemVariant.objects.filter(generated_by=request.user, base_problem=problem).exists():
         messages.warning(request, "A variant already exists for this problem.")
         return redirect("problem_list")
 
     # 🔹 Call Gemini API
-    api_key = settings.GEMINI_API_KEY  # put your API key in settings.py
+    api_key = os.getenv("GEMINI_API_KEY")  # put your API key in settings.py
     url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
 
     headers = {
@@ -346,7 +348,7 @@ def generate_problem_variation(request):
         try:
             variation_data = json.loads(cleaned_text)
         except json.JSONDecodeError:
-            # print("AI did not return valid JSON. Raw:", ai_text)
+            print("AI did not return valid JSON. Raw:", ai_text)
             variation_data = {
                 "title": f"Variation of {problem.title}",
                 "description": f"Alternate: {problem.description}",
@@ -356,13 +358,7 @@ def generate_problem_variation(request):
         variation_description = variation_data.get("description", problem.description)
 
     except Exception as e:
-        # print("Gemini API Error:", e)
-        variation_title = f"Variation of {problem.title}"
-        variation_description = f"Alternate storyline: {problem.description}"
-
-
-    except Exception as e:
-        # print("Gemini API Error:", e)
+        print("Gemini API Error:", e)
         variation_title = f"Variation of {problem.title}"
         variation_description = f"Alternate storyline: {problem.description}"
 
