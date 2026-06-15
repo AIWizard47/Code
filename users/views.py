@@ -227,11 +227,11 @@ def profile_edit_save(request):
         bio = request.POST.get('bio', '').strip()
         
         # Validate data
-        if len(location) > 100:
-            raise ValueError("Location must be less than 100 characters")
+        if len(location) > 20:
+            raise ValueError("Location must be less than 20 characters")
         
-        if len(bio) > 500:
-            raise ValueError("Bio must be less than 500 characters")
+        if len(bio) > 100:
+            raise ValueError("Bio must be less than 100 characters")
         
         # Update profile
         user_profile.location = location if location else 'Unknown'
