@@ -171,3 +171,4 @@ LOGIN_REDIRECT_URL = '/'
 
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+SAND_BOX_URL = os.getenv("SAND_BOX_URL")

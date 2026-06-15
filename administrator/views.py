@@ -6,6 +6,7 @@ from users.models import UserRole, Role, ProblemUploader
 from submissions.views import run
 from django.views.decorators.csrf import csrf_exempt
 import requests
+from CodePlatform import settings
 
 # Create your views here.
 def user_has_role(user, role_name: str) -> bool:
@@ -146,7 +147,7 @@ def generate_output(request):
         print(language, solution_code)
         try:
             # Call the sandbox service directly
-            response = requests.post("https://sandbox-production-ed09.up.railway.app/run/", json={
+            response = requests.post(settings.SAND_BOX_URL+"run/", json={
                 "code": solution_code,
                 "language": language,
                 "input": input_data

@@ -13,6 +13,7 @@ import os
 from problems.models import Contest, ContestSubmission
 from django.utils import timezone
 import requests
+from CodePlatform import settings
 
 @csrf_exempt
 @ratelimit(key='ip', rate='1/s', block=True,method=ratelimit.ALL)
@@ -35,21 +36,21 @@ def submit_code(request):
         try:
             for idx, test_case in enumerate(problem.test_cases.all()):
                                 # Call sandbox microservice
-                # response = requests.post("https://sandbox-production-ed09.up.railway.app/run/", json={
-                #     "code": code,
-                #     "language": language,
-                #     "input": test_case.input_data
-                # }, timeout=10)
+                response = requests.post(settings.SAND_BOX_URL+"run/", json={
+                    "code": code,
+                    "language": language,
+                    "input": test_case.input_data
+                }, timeout=10)
 
-                # if response.status_code != 200:
-                #     verdict = "Sandbox Error"
-                #     error = response.text
-                #     break
+                if response.status_code != 200:
+                    verdict = "Sandbox Error"
+                    error = response.text
+                    break
 
-                # result = response.json()
-                # stdout = result.get("output", "")
-                # stderr = result.get("error", "")
-                stdout, stderr = run_code(code, language, test_case.input_data)
+                result = response.json()
+                stdout = result.get("output", "")
+                stderr = result.get("error", "")
+                # stdout, stderr = run_code(code, language, test_case.input_data)
                 # print(result)
                 def normalize_output(output):
                     lines = output.strip().replace('\r\n', '\n').split('\n')
@@ -130,27 +131,27 @@ def run(request):
         verdict = 'Accepted'
         error = ''
         test_results = []
-
+        # want to change here.
         try:
             for idx, test_case in enumerate(problem.test_cases.all()):
                                 # Call sandbox microservice
                 if not test_case.is_sample:
                     continue
-                # response = requests.post("https://sandbox-production-ed09.up.railway.app/run/", json={
-                #     "code": code,
-                #     "language": language,
-                #     "input": test_case.input_data
-                # }, timeout=10)
+                response = requests.post(settings.SAND_BOX_URL+"run/", json={
+                    "code": code,
+                    "language": language,
+                    "input": test_case.input_data
+                }, timeout=10)
 
-                # if response.status_code != 200:
-                #     verdict = "Sandbox Error"
-                #     error = response.text
-                #     break
+                if response.status_code != 200:
+                    verdict = "Sandbox Error"
+                    error = response.text
+                    break
 
-                # result = response.json()
-                # stdout = result.get("output", "")
-                # stderr = result.get("error", "")
-                stdout, stderr = run_code(code, language, test_case.input_data)
+                result = response.json()
+                stdout = result.get("output", "")
+                stderr = result.get("error", "")
+                # stdout, stderr = run_code(code, language, test_case.input_data)
                 # print(result)
                 def normalize_output(output):
                     lines = output.strip().replace('\r\n', '\n').split('\n')
@@ -433,7 +434,7 @@ from django.core.paginator import Paginator
 def leaderboard(request):
     # Aggregate unique problems solved per user
     users = (
-        User.objects.annotate(
+        User.objects.annotate( # here i am using join table
             solved_count=Count(
                 'submission__problem',
                 filter=Q(submission__verdict='Accepted'),
