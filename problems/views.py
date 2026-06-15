@@ -14,6 +14,7 @@ import json
 from django.conf import settings
 import requests
 import os
+import google.generativeai as genai
 from dotenv import load_dotenv
 
 def problem_list(request):
@@ -264,13 +265,12 @@ def generate_problem_variation(request):
         return redirect("problem_list")
 
     # 🔹 Call Gemini API
-    api_key = os.getenv("GEMINI_API_KEY")  # put your API key in settings.py
-    url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
-
-    headers = {
-        "Content-Type": "application/json",
-        "X-goog-api-key": api_key,
-    }
+    api_key = settings.GEMINI_API_KEY  # put your API key in settings.py
+    if not api_key:
+        messages.warning(request, "Key is missing please try after some time")
+        return redirect("problem_list")
+    genai.configure(api_key=settings.GEMINI_API_KEY)
+    model = genai.GenerativeModel("gemini-2.5-pro")
 
     prompt = f"""
         You are an AI assistant for a coding contest platform.
@@ -305,35 +305,12 @@ def generate_problem_variation(request):
         }}
     """
 
-
-
-    payload = {
-        "contents": [
-            {
-                "parts": [
-                    {"text": prompt}
-                ]
-            }
-        ],
-        "generationConfig": {
-            "temperature": 0.9,   # higher = more randomness
-            "top_p": 0.8,        # nucleus sampling
-            "top_k": 40          # diverse sampling
-        }
-    }
-
     try:
-        response = requests.post(url, headers=headers, json=payload)
-        response.raise_for_status()
-        data = response.json()
-
-        # Extract text from Gemini response
-        ai_text = (
-            data.get("candidates", [{}])[0]
-            .get("content", {})
-            .get("parts", [{}])[0]
-            .get("text", "")
-        )
+        # response = requests.post(url, headers=headers, json=payload)
+        response = model.generate_content(prompt)
+        # response.raise_for_status()
+        # print(response)
+        ai_text = response.text
         if not ai_text:
             ai_text = '{"title": "Fallback", "description": "AI failed to generate."}'
 
