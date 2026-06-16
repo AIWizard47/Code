@@ -1,0 +1,40 @@
+Memurai for Redis 8.2 release notes
+================================================================================
+
+--------------------------------------------------------------------------------
+Upgrade urgency levels:
+
+LOW:      No need to upgrade unless there are new features you want to use.
+MODERATE: Program an upgrade of the server, but it's not urgent.
+HIGH:     There is a critical bug that may affect a subset of users. Upgrade!
+CRITICAL: There is a critical bug affecting MOST USERS. Upgrade ASAP.
+SECURITY: There are security fixes in the release.
+--------------------------------------------------------------------------------
+
+
+================================================================================
+Memurai for Redis 8.2 RC1    Released Mar 16 2026
+================================================================================
+
+This is the first Release Candidate for Memurai for Redis 8.2.
+
+Versioning note:
+
+Starting with Memurai for Redis 8.2, version numbers are aligned with Redis Open Source.
+The major and minor version (x.y) now correspond directly to the Redis release
+line, while the patch version (z) is used for Memurai-specific updates.
+
+Memurai for Redis 8.2 RC1 is aligned with Redis Open Source 8.2.5 and includes all
+features, improvements, and bug fixes from that release.
+
+For full details, see the Redis 8.2.5 release notes:
+https://raw.githubusercontent.com/redis/redis/8.2.5/00-RELEASENOTES
+
+Features associated with Redis Stack are not included in this release.
+This includes capabilities such as RedisJSON, RediSearch and vector sets.
+
+Support for Redis Stack capabilities is planned for upcoming Memurai releases.
+
+================================================================================
+Memurai for Redis 8.2 RC1    --- End of Release Notes ---
+================================================================================
